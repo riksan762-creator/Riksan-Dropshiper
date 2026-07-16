@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Riksan</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/toast.css">
+    <link rel="stylesheet" href="assets/css/admin.css">
+</head>
+<body>
+
+    <div class="sidebar glass-dark">
+        <h2>Riksan<span>Admin.</span></h2>
+        <a href="#" class="active"><i class="fas fa-box"></i> Kelola Produk</a>
+        <a href="index.html"><i class="fas fa-store"></i> Lihat Toko</a>
+    </div>
+
+    <div class="main-content">
+        <header class="admin-header">
+            <h2 class="gradient-text">Dashboard Overview</h2>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card glass-light">
+                <h3>Total Produk Aktif</h3>
+                <p id="totalProducts">0</p>
+            </div>
+            <div class="stat-card glass-light">
+                <h3>Estimasi Nilai Aset</h3>
+                <p id="totalValue" class="gradient-text">Rp 0</p>
+            </div>
+            <div class="stat-card glass-light">
+                <h3>Status Database</h3>
+                <p style="color: #38bdf8;">Local Server OK</p>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="card glass-light form-card">
+                <h3><i class="fas fa-plus-circle"></i> Tambah Produk</h3>
+                <form id="productForm">
+                    <div class="form-group">
+                        <label>Nama Produk</label>
+                        <input type="text" id="pName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Kategori</label>
+                        <select id="pCat" class="form-control" required>
+                            <option value="Sepatu">Sepatu</option>
+                            <option value="Pakaian">Pakaian</option>
+                            <option value="Aksesoris">Aksesoris</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Harga (Rp)</label>
+                        <input type="number" id="pPrice" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>URL Gambar</label>
+                        <input type="url" id="pImg" class="form-control" placeholder="https://..." required>
+                    </div>
+                    <button type="submit" class="btn-primary">Simpan ke Katalog</button>
+                </form>
+            </div>
+
+            <div class="card glass-light table-card">
+                <h3><i class="fas fa-list"></i> Database Produk</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>IMG</th>
+                                <th>Nama</th>
+                                <th>Kategori</th>
+                                <th>Harga</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/database.js"></script>
+    <script src="assets/js/toast.js"></script>
+    <script src="assets/js/admin.js"></script>
+</body>
+</html>

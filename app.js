@@ -19,17 +19,17 @@ const DEFAULT_SETTINGS = {
 };
 
 const DEFAULT_PRODUCTS = [
-  { id: "P001", nama: "Kaos Oversize Katun 24s", kategori: "Fashion Pria", harga: 89000, stok: 24,
+  { id: "P001", nama: "Kaos Oversize Katun 24s", kategori: "Fashion Pria", harga: 89000, hargaCoret: 120000, stok: 24,
     gambar: "https://placehold.co/500x500/1B1030/FBF6EC?text=Kaos+Oversize", deskripsi: "Bahan katun combed 24s, adem, jahitan rapi. Cocok buat dropship harian, fast moving item." },
-  { id: "P002", nama: "Tas Selempang Mini Kanvas", kategori: "Tas & Aksesoris", harga: 65000, stok: 15,
+  { id: "P002", nama: "Tas Selempang Mini Kanvas", kategori: "Tas & Aksesoris", harga: 65000, hargaCoret: null, stok: 15,
     gambar: "https://placehold.co/500x500/E63E7F/FBF6EC?text=Tas+Selempang", deskripsi: "Kanvas tebal anti sobek, muat HP + dompet, banyak varian warna." },
-  { id: "P003", nama: "Skincare Serum Niacinamide 20ml", kategori: "Kecantikan", harga: 45000, stok: 0,
+  { id: "P003", nama: "Skincare Serum Niacinamide 20ml", kategori: "Kecantikan", harga: 45000, hargaCoret: null, stok: 0,
     gambar: "https://placehold.co/500x500/12897A/FBF6EC?text=Serum+Niacinamide", deskripsi: "Serum wajah untuk mencerahkan & meratakan warna kulit, BPOM." },
-  { id: "P004", nama: "Sepatu Sneakers Sport Grip", kategori: "Sepatu", harga: 149000, stok: 8,
+  { id: "P004", nama: "Sepatu Sneakers Sport Grip", kategori: "Sepatu", harga: 149000, hargaCoret: 199000, stok: 8,
     gambar: "https://placehold.co/500x500/1B1030/C6FF3D?text=Sneakers", deskripsi: "Outsole grip anti licin, ringan dipakai seharian, size 39-44." },
-  { id: "P005", nama: "Case HP Anti Crack Bening", kategori: "Aksesoris HP", harga: 19000, stok: 50,
+  { id: "P005", nama: "Case HP Anti Crack Bening", kategori: "Aksesoris HP", harga: 19000, hargaCoret: null, stok: 50,
     gambar: "https://placehold.co/500x500/B8215C/FBF6EC?text=Case+HP", deskripsi: "Silikon lentur, presisi lubang kamera, tersedia semua tipe HP populer." },
-  { id: "P006", nama: "Botol Minum Lipat 500ml", kategori: "Peralatan Harian", harga: 35000, stok: 30,
+  { id: "P006", nama: "Botol Minum Lipat 500ml", kategori: "Peralatan Harian", harga: 35000, hargaCoret: null, stok: 30,
     gambar: "https://placehold.co/500x500/3A2C52/FBF6EC?text=Botol+Lipat", deskripsi: "Silikon food grade, bisa dilipat kecil, hemat tempat di tas." },
 ];
 
@@ -135,16 +135,21 @@ function renderGrid() {
   }
   grid.innerHTML = list.map(p => {
     const habis = Number(p.stok) <= 0;
+    const diskon = p.hargaCoret && p.hargaCoret > p.harga ? Math.round((1 - p.harga / p.hargaCoret) * 100) : 0;
     return `
     <div class="card">
       <div class="thumb" data-open="${p.id}">
         <span class="badge-stock ${habis ? "habis" : ""}">${habis ? "Stok Habis" : "Ready Stock"}</span>
+        ${diskon > 0 ? `<span class="badge-diskon">-${diskon}%</span>` : ""}
         <img src="${p.gambar}" alt="${p.nama}" loading="lazy">
       </div>
       <div class="body">
         <span class="kategori">${p.kategori}</span>
         <h4 data-open="${p.id}">${p.nama}</h4>
-        <div class="price">${rupiah(p.harga)}</div>
+        <div class="price-wrap">
+          <span class="price">${rupiah(p.harga)}</span>
+          ${diskon > 0 ? `<span class="price-original">${rupiah(p.hargaCoret)}</span>` : ""}
+        </div>
         <div class="actions">
           <button class="detail" data-open="${p.id}">Detail</button>
           <button class="add" data-add="${p.id}" ${habis ? "disabled" : ""}>${habis ? "Habis" : "+ Keranjang"}</button>
@@ -162,6 +167,7 @@ function openModal(id) {
   if (!p) return;
   const overlay = document.getElementById("modalOverlay");
   const habis = Number(p.stok) <= 0;
+  const diskon = p.hargaCoret && p.hargaCoret > p.harga ? Math.round((1 - p.harga / p.hargaCoret) * 100) : 0;
   overlay.innerHTML = `
     <div class="modal">
       <button class="modal-close" id="closeModal">&times;</button>
@@ -169,7 +175,10 @@ function openModal(id) {
       <div class="m-body">
         <span class="kategori">${p.kategori}</span>
         <h3>${p.nama}</h3>
-        <div class="price">${rupiah(p.harga)}</div>
+        <div class="price-wrap">
+          <span class="price">${rupiah(p.harga)}</span>
+          ${diskon > 0 ? `<span class="price-original">${rupiah(p.hargaCoret)}</span><span class="badge-diskon-inline">Hemat ${diskon}%</span>` : ""}
+        </div>
         <p class="desc">${p.deskripsi || "Tidak ada deskripsi tambahan."}</p>
         <p style="font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);">Stok: ${p.stok}</p>
         <button class="btn btn-primary" id="modalAdd" ${habis ? "disabled" : ""} style="width:100%;justify-content:center;">${habis ? "Stok Habis" : "Tambah ke Keranjang"}</button>

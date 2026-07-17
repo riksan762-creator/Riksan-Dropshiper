@@ -2,19 +2,20 @@
    RIKSAN DROPSHIP — storefront logic
    Data source: localStorage("riksan_products" / "riksan_settings")
    Diisi & dikelola lewat admin.html — file ini hanya membaca
-   & menampilkan, plus mengurus keranjang + checkout WhatsApp.
+   & menampilkan, plus mengurus keranjang + checkout WhatsApp/Shopee.
    ========================================================= */
 
 const LS_PRODUCTS = "riksan_products";
 const LS_SETTINGS = "riksan_settings";
 const LS_CART = "riksan_cart";
 
-/* ---------- default seed (dipakai saat pertama kali dibuka) ---------- */
 const DEFAULT_SETTINGS = {
   namaToko: "Riksan Dropship",
   tagline: "Belanja Sat-Set, Chat Admin, Barang Meluncur",
   noWA: "6282113945743",
   alamat: "Gudang Titipan — Kirim dari Supplier Terpercaya",
+  topbarText: "📦 Kirim ke seluruh Indonesia — dari supplier langsung ke pembeli",
+  linkShopee: "",
 };
 
 const DEFAULT_PRODUCTS = [
@@ -32,7 +33,6 @@ const DEFAULT_PRODUCTS = [
     gambar: "https://placehold.co/500x500/3A2C52/FBF6EC?text=Botol+Lipat", deskripsi: "Silikon food grade, bisa dilipat kecil, hemat tempat di tas." },
 ];
 
-/* ---------- helpers ---------- */
 function getProducts() {
   const raw = localStorage.getItem(LS_PRODUCTS);
   if (!raw) {
@@ -55,13 +55,11 @@ function getCart() {
 function saveCart(cart) { sessionStorage.setItem(LS_CART, JSON.stringify(cart)); }
 function rupiah(n) { return "Rp" + Number(n).toLocaleString("id-ID"); }
 
-/* ---------- state ---------- */
 let products = [];
 let settings = {};
 let activeKategori = "Semua";
 let searchTerm = "";
 
-/* ---------- init ---------- */
 document.addEventListener("DOMContentLoaded", () => {
   products = getProducts();
   settings = getSettings();
@@ -77,9 +75,21 @@ function applyBranding() {
   document.querySelectorAll("[data-toko-nama]").forEach(el => el.textContent = settings.namaToko);
   document.querySelectorAll("[data-toko-tagline]").forEach(el => el.textContent = settings.tagline);
   document.querySelectorAll("[data-toko-alamat]").forEach(el => el.textContent = settings.alamat);
+  document.querySelectorAll("[data-toko-topbar]").forEach(el => el.textContent = settings.topbarText || DEFAULT_SETTINGS.topbarText);
   document.title = settings.namaToko + " — Dropship Kilat, Order via WhatsApp";
   const waFloat = document.getElementById("waFloatLink");
   if (waFloat) waFloat.href = `https://wa.me/${settings.noWA}?text=${encodeURIComponent("Halo " + settings.namaToko + ", saya mau tanya-tanya produk 🙏")}`;
+
+  const hasShopee = !!(settings.linkShopee && settings.linkShopee.trim());
+  const heroShopeeBtn = document.getElementById("btnShopeeHero");
+  if (heroShopeeBtn) {
+    heroShopeeBtn.style.display = hasShopee ? "inline-flex" : "none";
+    heroShopeeBtn.href = settings.linkShopee || "#";
+  }
+  const shopeeCheckoutBtn = document.getElementById("shopeeCheckoutBtn");
+  const shopeeDivider = document.getElementById("shopeeDivider");
+  if (shopeeCheckoutBtn) shopeeCheckoutBtn.style.display = hasShopee ? "flex" : "none";
+  if (shopeeDivider) shopeeDivider.style.display = hasShopee ? "flex" : "none";
 }
 
 function renderKategoriChips() {
@@ -147,7 +157,6 @@ function renderGrid() {
   grid.querySelectorAll("[data-add]").forEach(el => el.addEventListener("click", (e) => { e.stopPropagation(); addToCart(el.dataset.add); }));
 }
 
-/* ---------- modal detail ---------- */
 function openModal(id) {
   const p = products.find(x => x.id === id);
   if (!p) return;
@@ -174,7 +183,6 @@ function openModal(id) {
 }
 function closeModal() { document.getElementById("modalOverlay").classList.remove("show"); }
 
-/* ---------- cart ---------- */
 function addToCart(id) {
   const p = products.find(x => x.id === id);
   if (!p || Number(p.stok) <= 0) return;
@@ -262,7 +270,6 @@ function closeCart() {
   document.getElementById("overlayBg").classList.remove("show");
 }
 
-/* ---------- checkout via WhatsApp ---------- */
 function checkoutWA() {
   const cart = getCart();
   if (cart.length === 0) { showToast("Keranjang masih kosong"); return; }
@@ -288,7 +295,12 @@ Mohon info ongkir & cara pembayarannya ya. Terima kasih 🙏`;
   window.open(url, "_blank");
 }
 
-/* ---------- toast ---------- */
+function checkoutShopee() {
+  if (!settings.linkShopee) { showToast("Link Shopee belum diatur admin"); return; }
+  showToast("Membuka Shopee — cari produk yang sama di sana ya");
+  window.open(settings.linkShopee, "_blank");
+}
+
 let toastTimer;
 function showToast(msg) {
   const t = document.getElementById("toast");
@@ -299,12 +311,12 @@ function showToast(msg) {
   toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
 }
 
-/* ---------- bind global UI ---------- */
 function bindUI() {
   document.getElementById("openCartBtn")?.addEventListener("click", openCart);
   document.getElementById("closeCartBtn")?.addEventListener("click", closeCart);
   document.getElementById("overlayBg")?.addEventListener("click", closeCart);
   document.getElementById("waCheckoutBtn")?.addEventListener("click", checkoutWA);
+  document.getElementById("shopeeCheckoutBtn")?.addEventListener("click", checkoutShopee);
 
   const searchInput = document.getElementById("searchInput");
   searchInput?.addEventListener("input", (e) => {

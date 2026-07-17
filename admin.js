@@ -21,17 +21,17 @@ const DEFAULT_SETTINGS = {
 };
 
 const DEFAULT_PRODUCTS = [
-  { id: "P001", nama: "Kaos Oversize Katun 24s", kategori: "Fashion Pria", harga: 89000, stok: 24,
+  { id: "P001", nama: "Kaos Oversize Katun 24s", kategori: "Fashion Pria", harga: 89000, hargaCoret: 120000, stok: 24,
     gambar: "https://placehold.co/500x500/1B1030/FBF6EC?text=Kaos+Oversize", deskripsi: "Bahan katun combed 24s, adem, jahitan rapi." },
-  { id: "P002", nama: "Tas Selempang Mini Kanvas", kategori: "Tas & Aksesoris", harga: 65000, stok: 15,
+  { id: "P002", nama: "Tas Selempang Mini Kanvas", kategori: "Tas & Aksesoris", harga: 65000, hargaCoret: null, stok: 15,
     gambar: "https://placehold.co/500x500/E63E7F/FBF6EC?text=Tas+Selempang", deskripsi: "Kanvas tebal anti sobek, muat HP + dompet." },
-  { id: "P003", nama: "Skincare Serum Niacinamide 20ml", kategori: "Kecantikan", harga: 45000, stok: 0,
+  { id: "P003", nama: "Skincare Serum Niacinamide 20ml", kategori: "Kecantikan", harga: 45000, hargaCoret: null, stok: 0,
     gambar: "https://placehold.co/500x500/12897A/FBF6EC?text=Serum+Niacinamide", deskripsi: "Serum wajah mencerahkan, BPOM." },
-  { id: "P004", nama: "Sepatu Sneakers Sport Grip", kategori: "Sepatu", harga: 149000, stok: 8,
+  { id: "P004", nama: "Sepatu Sneakers Sport Grip", kategori: "Sepatu", harga: 149000, hargaCoret: 199000, stok: 8,
     gambar: "https://placehold.co/500x500/1B1030/C6FF3D?text=Sneakers", deskripsi: "Outsole grip anti licin, size 39-44." },
-  { id: "P005", nama: "Case HP Anti Crack Bening", kategori: "Aksesoris HP", harga: 19000, stok: 50,
+  { id: "P005", nama: "Case HP Anti Crack Bening", kategori: "Aksesoris HP", harga: 19000, hargaCoret: null, stok: 50,
     gambar: "https://placehold.co/500x500/B8215C/FBF6EC?text=Case+HP", deskripsi: "Silikon lentur, presisi lubang kamera." },
-  { id: "P006", nama: "Botol Minum Lipat 500ml", kategori: "Peralatan Harian", harga: 35000, stok: 30,
+  { id: "P006", nama: "Botol Minum Lipat 500ml", kategori: "Peralatan Harian", harga: 35000, hargaCoret: null, stok: 30,
     gambar: "https://placehold.co/500x500/3A2C52/FBF6EC?text=Botol+Lipat", deskripsi: "Silikon food grade, bisa dilipat kecil." },
 ];
 
@@ -177,7 +177,7 @@ function renderTable() {
         </div>
       </td>
       <td>${p.kategori}</td>
-      <td>${rupiah(p.harga)}</td>
+      <td>${p.hargaCoret ? `<span style="text-decoration:line-through;color:var(--ink-soft);font-size:11px;display:block;">${rupiah(p.hargaCoret)}</span>${rupiah(p.harga)}` : rupiah(p.harga)}</td>
       <td>${p.stok}</td>
       <td><span class="pill ${habis ? "habis" : "ready"}">${habis ? "Stok Habis" : "Ready"}</span></td>
       <td>
@@ -200,6 +200,7 @@ function openProductModal(id) {
   document.getElementById("fNama").value = p?.nama || "";
   document.getElementById("fKategori").value = p?.kategori || "";
   document.getElementById("fHarga").value = p?.harga || "";
+  document.getElementById("fHargaCoret").value = p?.hargaCoret || "";
   document.getElementById("fStok").value = p?.stok ?? "";
   document.getElementById("fDeskripsi").value = p?.deskripsi || "";
   document.getElementById("fGambar").value = p?.gambar || "";
@@ -231,6 +232,8 @@ function saveProductForm(e) {
   const nama = document.getElementById("fNama").value.trim();
   const kategori = document.getElementById("fKategori").value.trim();
   const harga = Number(document.getElementById("fHarga").value);
+  const hargaCoretRaw = document.getElementById("fHargaCoret").value.trim();
+  const hargaCoret = hargaCoretRaw ? Number(hargaCoretRaw) : null;
   const stok = Number(document.getElementById("fStok").value);
   const gambar = document.getElementById("fGambar").value.trim() || `https://placehold.co/500x500/1B1030/FBF6EC?text=${encodeURIComponent(nama || "Produk")}`;
   const deskripsi = document.getElementById("fDeskripsi").value.trim();
@@ -239,13 +242,17 @@ function saveProductForm(e) {
     showToast("Lengkapi semua kolom wajib dulu ya");
     return;
   }
+  if (hargaCoret !== null && (isNaN(hargaCoret) || hargaCoret <= harga)) {
+    showToast("Harga coret harus lebih besar dari harga jual");
+    return;
+  }
 
   if (editingId) {
     const idx = products.findIndex(p => p.id === editingId);
-    if (idx > -1) products[idx] = { ...products[idx], nama, kategori, harga, stok, gambar, deskripsi };
+    if (idx > -1) products[idx] = { ...products[idx], nama, kategori, harga, hargaCoret, stok, gambar, deskripsi };
     showToast("Produk berhasil diperbarui");
   } else {
-    products.push({ id: genId(), nama, kategori, harga, stok, gambar, deskripsi });
+    products.push({ id: genId(), nama, kategori, harga, hargaCoret, stok, gambar, deskripsi });
     showToast("Produk baru ditambahkan");
   }
   saveProducts(products);

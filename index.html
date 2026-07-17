@@ -3,123 +3,188 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Riksan Dropship — Dropship Kilat, Order via WhatsApp</title>
-<meta name="description" content="Riksan Dropship — katalog produk dropship, order langsung ke WhatsApp, tanpa ribet.">
+<title>Admin Panel — Riksan Dropship</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧾</text></svg>">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="admin.css">
 </head>
 <body>
 
-<div class="topbar">
-  <div class="container">
-    <span>📦 Kirim ke seluruh Indonesia — dari supplier langsung ke pembeli</span>
-    <span data-toko-alamat>Gudang Titipan — Kirim dari Supplier Terpercaya</span>
+<!-- ================= LOGIN ================= -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <div class="stamp">RD</div>
+    <h1>Admin Panel</h1>
+    <p>Masuk untuk mengelola katalog Riksan Dropship.</p>
+    <form id="loginForm">
+      <div class="field">
+        <label for="loginUser">Username</label>
+        <input type="text" id="loginUser" placeholder="admin" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label for="loginPass">Password</label>
+        <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" required>
+      </div>
+      <p class="login-error" id="loginError"></p>
+      <button class="btn-block" type="submit">Masuk ke Dashboard</button>
+    </form>
+    <div class="login-hint">
+      Default: <b>admin</b> / <b>riksan123</b><br>
+      Ganti di file <b>admin.js</b> (variabel ADMIN_USER / ADMIN_PASS) sebelum dipakai publik.
+    </div>
   </div>
 </div>
 
-<header class="site">
-  <div class="container nav">
-    <a href="#" class="brand"><span class="stamp">RD</span> <span data-toko-nama>Riksan Dropship</span></a>
-    <div class="nav-actions">
-      <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Cari produk...">
-        <button id="searchBtn" aria-label="Cari">🔍</button>
+<!-- ================= SHELL ================= -->
+<div class="shell" id="adminShell" style="display:none;">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><span class="dot"></span> Riksan Dropship</div>
+    <nav>
+      <button class="nav-item active" data-view="viewDashboard">📊 Dashboard</button>
+      <button class="nav-item" data-view="viewProduk">📦 Kelola Produk</button>
+      <button class="nav-item" data-view="viewPengaturan">⚙️ Pengaturan Toko</button>
+    </nav>
+    <div class="foot">
+      <a href="index.html" target="_blank">🔗 Lihat Toko</a>
+      <button id="logoutBtn">Keluar</button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar-admin">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button class="menu-toggle" id="menuToggle">☰</button>
+        <div>
+          <h2>Admin Panel</h2>
+          <p>Kelola produk & pengaturan toko Riksan Dropship</p>
+        </div>
       </div>
-      <button class="cart-btn" id="openCartBtn">
-        🛒 Keranjang <span class="count" id="cartCount">0</span>
-      </button>
+      <span style="font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);">WA Admin: <b id="waNumberDisplay">-</b></span>
+    </div>
+
+    <div class="view">
+
+      <!-- DASHBOARD -->
+      <section class="view-panel active" id="viewDashboard">
+        <div class="stat-cards">
+          <div class="stat-card"><div class="label">Total Produk</div><div class="val" id="statProduk">0</div></div>
+          <div class="stat-card"><div class="label">Total Stok</div><div class="val" id="statStok">0</div></div>
+          <div class="stat-card"><div class="label">Stok Habis</div><div class="val" id="statHabis">0</div></div>
+          <div class="stat-card"><div class="label">Kategori</div><div class="val" id="statKategori">0</div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Selamat datang di panel admin 👋</h3></div>
+          <p style="font-size:13.5px;color:var(--ink-soft);line-height:1.7;">
+            Semua produk yang kamu tambah/ubah/hapus di sini akan langsung tampil di halaman toko
+            (<b>index.html</b>). Pelanggan checkout lewat WhatsApp — pesan otomatis berisi daftar barang & total belanja
+            akan terkirim ke nomor admin yang diatur di menu <b>Pengaturan Toko</b>.
+          </p>
+        </div>
+      </section>
+
+      <!-- KELOLA PRODUK -->
+      <section class="view-panel" id="viewProduk">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Daftar Produk</h3>
+            <button class="btn-add" id="btnAddProduct">+ Tambah Produk</button>
+          </div>
+          <div class="toolbar">
+            <input type="text" id="tableSearch" placeholder="Cari nama produk...">
+            <select id="filterKategori"></select>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Produk</th><th>Kategori</th><th>Harga</th><th>Stok</th><th>Status</th><th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="productTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- PENGATURAN -->
+      <section class="view-panel" id="viewPengaturan">
+        <div class="panel" style="max-width:560px;">
+          <div class="panel-head"><h3>Pengaturan Toko</h3></div>
+          <form id="settingsForm">
+            <div class="field"><label for="sNamaToko">Nama Toko</label><input type="text" id="sNamaToko" required></div>
+            <div class="field"><label for="sTagline">Tagline</label><input type="text" id="sTagline"></div>
+            <div class="field">
+              <label for="sNoWA">Nomor WhatsApp (format 62xxxxxxxxxxx)</label>
+              <input type="text" id="sNoWA" placeholder="6282113945743" required>
+            </div>
+            <div class="field"><label for="sAlamat">Info Pengiriman / Alamat</label><input type="text" id="sAlamat"></div>
+            <button class="btn-block" type="submit">Simpan Pengaturan</button>
+          </form>
+        </div>
+      </section>
+
     </div>
   </div>
-</header>
+</div>
 
-<section class="hero">
-  <div class="container">
-    <div>
-      <span class="eyebrow">BUKA 24 JAM · BALAS CEPAT</span>
-      <h1>Dropship <em>Kilat</em>,<br>Tinggal Chat Admin</h1>
-      <p class="lead" data-toko-tagline>Belanja Sat-Set, Chat Admin, Barang Meluncur</p>
-      <div class="hero-ctas">
-        <a href="#katalog" class="btn btn-primary">📋 Lihat Katalog</a>
-        <a href="#" id="waFloatLinkHero" class="btn btn-ghost">💬 Chat Admin</a>
+<!-- MODAL: TAMBAH/EDIT PRODUK -->
+<div class="modal-overlay" id="productModal">
+  <div class="modal-box">
+    <button class="modal-close" id="closeProductModal">&times;</button>
+    <h3 id="modalTitle">Tambah Produk</h3>
+    <form id="productForm">
+      <div class="form-grid">
+        <div class="field full">
+          <label for="fNama">Nama Produk *</label>
+          <input type="text" id="fNama" required>
+        </div>
+        <div class="field">
+          <label for="fKategori">Kategori *</label>
+          <input type="text" id="fKategori" placeholder="Contoh: Fashion Pria" required>
+        </div>
+        <div class="field">
+          <label for="fHarga">Harga (Rp) *</label>
+          <input type="number" id="fHarga" min="0" required>
+        </div>
+        <div class="field">
+          <label for="fStok">Stok *</label>
+          <input type="number" id="fStok" min="0" required>
+        </div>
+        <div class="field full">
+          <label for="fGambarFile">Upload Foto Produk</label>
+          <input type="file" id="fGambarFile" accept="image/*">
+          <p class="upload-hint" id="uploadHint">Foto otomatis dikompres biar ringan. Maks disarankan 1 foto per produk.</p>
+        </div>
+        <div class="field full">
+          <label>Preview Gambar</label>
+          <div class="img-preview" id="imgPreviewBox"><span>Belum ada foto — upload di atas</span></div>
+          <input type="hidden" id="fGambar">
+        </div>
+        <div class="field full">
+          <details id="urlDetails">
+            <summary>Pakai URL gambar saja (opsional, tanpa upload)</summary>
+            <input type="text" id="fGambarUrl" placeholder="https://..." style="margin-top:10px;">
+          </details>
+        </div>
+        <div class="field full">
+          <label for="fDeskripsi">Deskripsi</label>
+          <textarea id="fDeskripsi" rows="3"></textarea>
+        </div>
       </div>
-    </div>
-    <div class="hero-receipt">
-      <span class="stamp-lunas">READY</span>
-      <h3>Nota Pesanan</h3>
-      <div class="row"><span>Kaos Oversize x1</span><span>Rp89.000</span></div>
-      <div class="row"><span>Case HP Bening x2</span><span>Rp38.000</span></div>
-      <div class="row total"><span>Total</span><span>Rp127.000</span></div>
-      <p style="margin-top:14px;opacity:.7;">*Contoh nota — order asli lewat WhatsApp otomatis 👇</p>
-    </div>
-  </div>
-</section>
-
-<section class="stats">
-  <div class="container">
-    <div class="item"><b id="statTotalProduk">0</b><span>PRODUK TERSEDIA</span></div>
-    <div class="item"><b id="statTotalKategori">0</b><span>KATEGORI</span></div>
-    <div class="item"><b id="statTotalStok">0</b><span>UNIT SIAP KIRIM</span></div>
-    <div class="item"><b>&lt;5&nbsp;MENIT</b><span>RATA-RATA BALAS CHAT</span></div>
-  </div>
-</section>
-
-<section class="section" id="katalog">
-  <div class="container">
-    <div class="section-head">
-      <div>
-        <span class="eyebrow-sm">Katalog</span>
-        <h2>Produk Siap Dropship</h2>
+      <div class="modal-actions">
+        <button type="button" class="cancel" id="cancelProductForm">Batal</button>
+        <button type="submit" class="save">Simpan Produk</button>
       </div>
-    </div>
-    <div class="chips" id="chips"></div>
-    <div class="grid" id="productGrid"></div>
+    </form>
   </div>
-</section>
+</div>
 
-<section class="trust">
-  <div class="container">
-    <div class="t-item"><b>🔒 Transaksi Aman</b>Order & konfirmasi langsung lewat WhatsApp, jelas ada admin yang balas.</div>
-    <div class="t-item"><b>🚚 Kirim dari Supplier</b>Barang dikirim langsung tanpa kamu perlu stok sendiri.</div>
-    <div class="t-item"><b>🛠️ Katalog Bisa Diubah</b>Admin bisa tambah, edit, hapus produk kapan saja lewat panel admin.</div>
-  </div>
-</section>
+<div class="toast" id="toastAdmin"></div>
 
-<footer class="site">
-  <div class="container">
-    <div>
-      <div class="f-brand" data-toko-nama>Riksan Dropship</div>
-      <p data-toko-alamat>Gudang Titipan — Kirim dari Supplier Terpercaya</p>
-      <p>&copy; <span id="year"></span> — Semua hak cipta dilindungi.</p>
-    </div>
-    <div class="f-links">
-      <a href="#katalog">Katalog</a>
-      <a href="admin.html" class="admin-link">Admin Panel →</a>
-    </div>
-  </div>
-</footer>
-
-<div class="overlay" id="overlayBg"></div>
-<aside class="drawer" id="cartDrawer">
-  <div class="drawer-head">
-    <span>🛒 Keranjang</span>
-    <button id="closeCartBtn" aria-label="Tutup">&times;</button>
-  </div>
-  <div class="drawer-items" id="cartItems"></div>
-  <div class="drawer-foot">
-    <div class="row total"><span>Total</span><span id="cartTotal">Rp0</span></div>
-    <button class="wa-checkout" id="waCheckoutBtn">💬 Checkout via WhatsApp</button>
-  </div>
-</aside>
-
-<div class="modal-overlay" id="modalOverlay"></div>
-
-<a class="wa-float" id="waFloatLink" href="#" target="_blank" rel="noopener">
-  💬 <span>Chat Admin<br><small>Tanya-tanya dulu boleh</small></span>
-</a>
-
-<div class="toast" id="toast"></div>
-
-<script src="app.js"></script>
-<script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+<script src="admin.js"></script>
+<script>
+  document.getElementById("cancelProductForm").addEventListener("click", () => {
+    document.getElementById("productModal").classList.remove("show");
+  });
+</script>
 </body>
 </html>

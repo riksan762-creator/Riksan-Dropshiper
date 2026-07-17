@@ -16,6 +16,8 @@ const DEFAULT_SETTINGS = {
   tagline: "Belanja Sat-Set, Chat Admin, Barang Meluncur",
   noWA: "6282113945743",
   alamat: "Gudang Titipan — Kirim dari Supplier Terpercaya",
+  topbarText: "📦 Kirim ke seluruh Indonesia — dari supplier langsung ke pembeli",
+  linkShopee: "",
 };
 
 const DEFAULT_PRODUCTS = [
@@ -33,7 +35,6 @@ const DEFAULT_PRODUCTS = [
     gambar: "https://placehold.co/500x500/3A2C52/FBF6EC?text=Botol+Lipat", deskripsi: "Silikon food grade, bisa dilipat kecil." },
 ];
 
-/* ---------- storage helpers ---------- */
 function getProducts() {
   const raw = localStorage.getItem(LS_PRODUCTS);
   if (!raw) { localStorage.setItem(LS_PRODUCTS, JSON.stringify(DEFAULT_PRODUCTS)); return [...DEFAULT_PRODUCTS]; }
@@ -49,7 +50,6 @@ function saveSettings(s) { localStorage.setItem(LS_SETTINGS, JSON.stringify(s));
 function rupiah(n) { return "Rp" + Number(n || 0).toLocaleString("id-ID"); }
 function genId() { return "P" + Math.random().toString(36).slice(2, 7).toUpperCase(); }
 
-/* ---------- kompres foto upload jadi base64 ringan ---------- */
 function compressImage(file, maxDim = 700, startQuality = 0.72) {
   return new Promise((resolve, reject) => {
     if (!file.type.startsWith("image/")) { reject(new Error("File bukan gambar")); return; }
@@ -69,7 +69,6 @@ function compressImage(file, maxDim = 700, startQuality = 0.72) {
 
         let quality = startQuality;
         let dataUrl = canvas.toDataURL("image/jpeg", quality);
-        // turunkan kualitas kalau hasilnya masih terlalu besar (target ~300KB)
         while (dataUrl.length > 400000 && quality > 0.35) {
           quality -= 0.1;
           dataUrl = canvas.toDataURL("image/jpeg", quality);
@@ -82,14 +81,12 @@ function compressImage(file, maxDim = 700, startQuality = 0.72) {
   });
 }
 
-/* ---------- state ---------- */
 let products = [];
 let settings = {};
 let editingId = null;
 let tableSearch = "";
 let tableKategori = "Semua";
 
-/* ---------- auth ---------- */
 document.addEventListener("DOMContentLoaded", () => {
   const loginForm = document.getElementById("loginForm");
   const shell = document.getElementById("adminShell");
@@ -129,7 +126,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-/* ---------- render everything ---------- */
 function renderAll() {
   renderStats();
   renderTable();
@@ -197,7 +193,6 @@ function renderTable() {
   tbody.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => deleteProduct(b.dataset.del)));
 }
 
-/* ---------- product modal (add/edit) ---------- */
 function openProductModal(id) {
   editingId = id || null;
   const p = id ? products.find(x => x.id === id) : null;
@@ -268,29 +263,31 @@ function deleteProduct(id) {
   showToast("Produk dihapus");
 }
 
-/* ---------- settings ---------- */
 function fillSettingsForm() {
   const f = document.getElementById("settingsForm");
   if (!f) return;
   document.getElementById("sNamaToko").value = settings.namaToko;
   document.getElementById("sTagline").value = settings.tagline;
+  document.getElementById("sTopbar").value = settings.topbarText || "";
   document.getElementById("sNoWA").value = settings.noWA;
   document.getElementById("sAlamat").value = settings.alamat;
+  document.getElementById("sLinkShopee").value = settings.linkShopee || "";
 }
 function saveSettingsForm(e) {
   e.preventDefault();
   settings = {
     namaToko: document.getElementById("sNamaToko").value.trim() || DEFAULT_SETTINGS.namaToko,
     tagline: document.getElementById("sTagline").value.trim(),
+    topbarText: document.getElementById("sTopbar").value.trim() || DEFAULT_SETTINGS.topbarText,
     noWA: document.getElementById("sNoWA").value.trim().replace(/[^0-9]/g, ""),
     alamat: document.getElementById("sAlamat").value.trim(),
+    linkShopee: document.getElementById("sLinkShopee").value.trim(),
   };
   saveSettings(settings);
   renderStats();
   showToast("Pengaturan toko disimpan");
 }
 
-/* ---------- toast ---------- */
 let toastTimer;
 function showToast(msg) {
   const t = document.getElementById("toastAdmin");
@@ -301,7 +298,6 @@ function showToast(msg) {
   toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
 }
 
-/* ---------- shell UI bindings ---------- */
 function bindShellUI() {
   document.getElementById("btnAddProduct")?.addEventListener("click", () => openProductModal(null));
   document.getElementById("closeProductModal")?.addEventListener("click", closeProductModal);

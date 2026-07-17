@@ -149,13 +149,21 @@
           <label for="fStok">Stok *</label>
           <input type="number" id="fStok" min="0" required>
         </div>
-        <div class="field">
-          <label for="fGambar">URL Gambar</label>
-          <input type="text" id="fGambar" placeholder="https://...">
+        <div class="field full">
+          <label for="fGambarFile">Upload Foto Produk</label>
+          <input type="file" id="fGambarFile" accept="image/*">
+          <p class="upload-hint" id="uploadHint">Foto otomatis dikompres biar ringan. Maks disarankan 1 foto per produk.</p>
         </div>
         <div class="field full">
           <label>Preview Gambar</label>
-          <div class="img-preview" id="imgPreviewBox"><span>Tempel URL gambar untuk lihat preview</span></div>
+          <div class="img-preview" id="imgPreviewBox"><span>Belum ada foto — upload di atas</span></div>
+          <input type="hidden" id="fGambar">
+        </div>
+        <div class="field full">
+          <details id="urlDetails">
+            <summary>Pakai URL gambar saja (opsional, tanpa upload)</summary>
+            <input type="text" id="fGambarUrl" placeholder="https://..." style="margin-top:10px;">
+          </details>
         </div>
         <div class="field full">
           <label for="fDeskripsi">Deskripsi</label>

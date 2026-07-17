@@ -209,7 +209,6 @@ function openProductModal(id) {
   document.getElementById("fDeskripsi").value = p?.deskripsi || "";
   document.getElementById("fGambar").value = p?.gambar || "";
   document.getElementById("fGambarFile").value = "";
-  // kalau gambar lama berupa link URL (bukan hasil upload base64), tampilkan di kolom URL
   document.getElementById("fGambarUrl").value = (p?.gambar && p.gambar.startsWith("http")) ? p.gambar : "";
   updateImgPreview();
   document.getElementById("productModal").classList.add("show");
@@ -310,7 +309,7 @@ function bindShellUI() {
   document.getElementById("fGambarFile")?.addEventListener("change", async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    document.getElementById("fGambarUrl").value = ""; // upload menang atas URL
+    document.getElementById("fGambarUrl").value = "";
     setPreviewLoading();
     try {
       const dataUrl = await compressImage(file);
@@ -324,7 +323,7 @@ function bindShellUI() {
     }
   });
   document.getElementById("fGambarUrl")?.addEventListener("input", (e) => {
-    document.getElementById("fGambarFile").value = ""; // URL menang atas upload
+    document.getElementById("fGambarFile").value = "";
     document.getElementById("fGambar").value = e.target.value.trim();
     updateImgPreview();
   });

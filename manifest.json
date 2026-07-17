@@ -1,9 +1,0 @@
-{
-  "name": "Riksan Dropship 9",
-  "short_name": "Riksan9",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#081120",
-  "theme_color": "#0f172a",
-  "icons": []
-}

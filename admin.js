@@ -49,6 +49,39 @@ function saveSettings(s) { localStorage.setItem(LS_SETTINGS, JSON.stringify(s));
 function rupiah(n) { return "Rp" + Number(n || 0).toLocaleString("id-ID"); }
 function genId() { return "P" + Math.random().toString(36).slice(2, 7).toUpperCase(); }
 
+/* ---------- kompres foto upload jadi base64 ringan ---------- */
+function compressImage(file, maxDim = 700, startQuality = 0.72) {
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith("image/")) { reject(new Error("File bukan gambar")); return; }
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Gagal membaca file"));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("Gagal memuat gambar"));
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > height && width > maxDim) { height = Math.round(height * (maxDim / width)); width = maxDim; }
+        else if (height > maxDim) { width = Math.round(width * (maxDim / height)); height = maxDim; }
+        const canvas = document.createElement("canvas");
+        canvas.width = width; canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+
+        let quality = startQuality;
+        let dataUrl = canvas.toDataURL("image/jpeg", quality);
+        // turunkan kualitas kalau hasilnya masih terlalu besar (target ~300KB)
+        while (dataUrl.length > 400000 && quality > 0.35) {
+          quality -= 0.1;
+          dataUrl = canvas.toDataURL("image/jpeg", quality);
+        }
+        resolve(dataUrl);
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 /* ---------- state ---------- */
 let products = [];
 let settings = {};
@@ -173,8 +206,11 @@ function openProductModal(id) {
   document.getElementById("fKategori").value = p?.kategori || "";
   document.getElementById("fHarga").value = p?.harga || "";
   document.getElementById("fStok").value = p?.stok ?? "";
-  document.getElementById("fGambar").value = p?.gambar || "";
   document.getElementById("fDeskripsi").value = p?.deskripsi || "";
+  document.getElementById("fGambar").value = p?.gambar || "";
+  document.getElementById("fGambarFile").value = "";
+  // kalau gambar lama berupa link URL (bukan hasil upload base64), tampilkan di kolom URL
+  document.getElementById("fGambarUrl").value = (p?.gambar && p.gambar.startsWith("http")) ? p.gambar : "";
   updateImgPreview();
   document.getElementById("productModal").classList.add("show");
 }
@@ -185,9 +221,15 @@ function closeProductModal() {
 function updateImgPreview() {
   const url = document.getElementById("fGambar").value.trim();
   const box = document.getElementById("imgPreviewBox");
+  box.classList.remove("loading");
   box.innerHTML = url
-    ? `<img src="${url}" alt="preview" onerror="this.parentElement.innerHTML='<span>Gagal memuat gambar — cek URL</span>'">`
-    : `<span>Tempel URL gambar untuk lihat preview</span>`;
+    ? `<img src="${url}" alt="preview" onerror="this.parentElement.innerHTML='<span>Gagal memuat gambar — cek URL/file</span>'">`
+    : `<span>Belum ada foto — upload di atas</span>`;
+}
+function setPreviewLoading() {
+  const box = document.getElementById("imgPreviewBox");
+  box.classList.add("loading");
+  box.innerHTML = `<span>Mengompres foto...</span>`;
 }
 
 function saveProductForm(e) {
@@ -265,7 +307,27 @@ function bindShellUI() {
   document.getElementById("btnAddProduct")?.addEventListener("click", () => openProductModal(null));
   document.getElementById("closeProductModal")?.addEventListener("click", closeProductModal);
   document.getElementById("productForm")?.addEventListener("submit", saveProductForm);
-  document.getElementById("fGambar")?.addEventListener("input", updateImgPreview);
+  document.getElementById("fGambarFile")?.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    document.getElementById("fGambarUrl").value = ""; // upload menang atas URL
+    setPreviewLoading();
+    try {
+      const dataUrl = await compressImage(file);
+      document.getElementById("fGambar").value = dataUrl;
+      updateImgPreview();
+      const kb = Math.round((dataUrl.length * 0.75) / 1024);
+      document.getElementById("uploadHint").textContent = `Foto siap dipakai (~${kb} KB setelah dikompres).`;
+    } catch (err) {
+      showToast(err.message || "Gagal memproses foto");
+      updateImgPreview();
+    }
+  });
+  document.getElementById("fGambarUrl")?.addEventListener("input", (e) => {
+    document.getElementById("fGambarFile").value = ""; // URL menang atas upload
+    document.getElementById("fGambar").value = e.target.value.trim();
+    updateImgPreview();
+  });
   document.getElementById("settingsForm")?.addEventListener("submit", saveSettingsForm);
 
   document.getElementById("tableSearch")?.addEventListener("input", (e) => {

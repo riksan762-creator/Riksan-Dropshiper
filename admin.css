@@ -186,6 +186,14 @@ tbody tr:hover{background:var(--paper-dim);}
 }
 .img-preview img{width:100%;height:100%;object-fit:cover;}
 .img-preview span{font-family:var(--font-mono);font-size:11px;color:var(--ink-soft);}
+.upload-hint{font-family:var(--font-mono);font-size:11px;color:var(--ink-soft);margin:6px 0 0;}
+.field input[type="file"]{
+  border:2px dashed var(--ink);background:#fff;padding:10px 12px;cursor:pointer;
+}
+#urlDetails{font-family:var(--font-mono);font-size:11.5px;color:var(--ink-soft);}
+#urlDetails summary{cursor:pointer;user-select:none;}
+#urlDetails input{margin-top:8px;}
+.img-preview.loading span{color:var(--magenta-deep);}
 
 .empty-row td{text-align:center;padding:36px 10px;color:var(--ink-soft);font-family:var(--font-mono);font-size:12.5px;}
 

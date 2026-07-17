@@ -14,9 +14,11 @@
   --magenta-deep:#B8215C;
   --lime:#C6FF3D;
   --teal:#12897A;
+  --gold:#D4AF37;
   --line:#D8CBB0;
   --danger:#C23B3B;
   --shadow:0 10px 30px -12px rgba(27,16,48,.35);
+  --shadow-lg:0 24px 60px -20px rgba(27,16,48,.5);
   --font-display:'Archivo Black', sans-serif;
   --font-body:'Space Grotesk', sans-serif;
   --font-mono:'IBM Plex Mono', monospace;
@@ -26,7 +28,6 @@
 body{margin:0;font-family:var(--font-body);background:var(--paper-dim);color:var(--ink);}
 button,input,select,textarea{font-family:inherit;}
 
-/* ---------- login screen ---------- */
 .login-wrap{
   min-height:100vh;display:flex;align-items:center;justify-content:center;
   background:var(--ink);
@@ -69,18 +70,18 @@ button,input,select,textarea{font-family:inherit;}
 .login-error{color:var(--danger);font-size:12.5px;font-family:var(--font-mono);margin:-6px 0 12px;display:none;}
 .login-error.show{display:block;}
 
-/* ---------- shell ---------- */
 .shell{display:flex;min-height:100vh;}
 .sidebar{
   width:230px;flex-shrink:0;background:var(--ink);color:var(--paper);
   display:flex;flex-direction:column;position:sticky;top:0;height:100vh;
+  box-shadow:var(--shadow-lg);
 }
 .sidebar .brand{
   padding:22px 20px;display:flex;align-items:center;gap:10px;
   font-family:var(--font-display);font-size:16px;text-transform:uppercase;
-  border-bottom:1px solid rgba(255,255,255,.12);
+  border-bottom:1px solid rgba(212,175,55,.25);
 }
-.sidebar .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--lime);}
+.sidebar .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--gold);}
 .sidebar nav{flex:1;padding:16px 10px;}
 .sidebar nav button{
   width:100%;text-align:left;background:none;border:none;color:var(--paper);
@@ -110,15 +111,18 @@ button,input,select,textarea{font-family:inherit;}
 .view-panel{display:none;}
 .view-panel.active{display:block;}
 
-/* ---------- stat cards ---------- */
 .stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px;}
 .stat-card{
   background:#fff;border:2px solid var(--ink);border-radius:var(--radius);padding:18px;
+  position:relative;overflow:hidden;
+}
+.stat-card::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg, var(--gold), var(--magenta));
 }
 .stat-card .label{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;color:var(--ink-soft);}
 .stat-card .val{font-family:var(--font-display);font-size:26px;margin-top:6px;color:var(--magenta-deep);}
 
-/* ---------- panel / card ---------- */
 .panel{background:#fff;border:2px solid var(--ink);border-radius:var(--radius);padding:22px;margin-bottom:24px;}
 .panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
 .panel-head h3{font-family:var(--font-display);text-transform:uppercase;font-size:15px;margin:0;}
@@ -134,7 +138,6 @@ button,input,select,textarea{font-family:inherit;}
   border:2px solid var(--ink);border-radius:8px;padding:9px 12px;font-size:13.5px;background:#fff;
 }
 
-/* ---------- table ---------- */
 .table-wrap{overflow-x:auto;}
 table{width:100%;border-collapse:collapse;font-size:13.5px;}
 thead th{
@@ -160,7 +163,6 @@ tbody tr:hover{background:var(--paper-dim);}
 .row-actions .del{border-color:var(--danger);color:var(--danger);}
 .row-actions .del:hover{background:var(--danger);color:#fff;}
 
-/* ---------- modal (product form) ---------- */
 .modal-overlay{
   position:fixed;inset:0;background:rgba(27,16,48,.55);display:none;
   align-items:center;justify-content:center;z-index:99;padding:20px;

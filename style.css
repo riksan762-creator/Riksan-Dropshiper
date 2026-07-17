@@ -8,15 +8,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 :root{
-  --ink:#1B1030;          /* deep aubergine-black — text, dark sections */
+  --ink:#1B1030;
   --ink-soft:#3A2C52;
-  --paper:#FBF6EC;        /* warm receipt paper */
+  --paper:#FBF6EC;
   --paper-dim:#F1E9D8;
-  --magenta:#E63E7F;      /* primary accent */
+  --magenta:#E63E7F;
   --magenta-deep:#B8215C;
-  --lime:#C6FF3D;         /* pop accent for highlights/stamps */
-  --teal:#12897A;         /* success / stok tersedia */
-  --gold:#D4AF37;         /* premium accent — dipakai tipis-tipis */
+  --lime:#C6FF3D;
+  --teal:#12897A;
+  --gold:#D4AF37;
   --gold-soft:#F1DFA0;
   --line:#D8CBB0;
   --shadow: 0 10px 30px -12px rgba(27,16,48,.35);
@@ -300,11 +300,29 @@ header.site{
   border:1px solid rgba(255,255,255,.6);
 }
 .card .badge-stock.habis{background:#8a8a8a;}
+.card .badge-diskon{
+  position:absolute;top:10px;right:10px;
+  font-family:var(--font-mono);font-size:11px;font-weight:700;
+  padding:4px 9px;border-radius:999px;
+  background:var(--gold);color:var(--ink);
+  border:1px solid rgba(27,16,48,.15);
+}
 .card .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1;}
 .card .kategori{font-family:var(--font-mono);font-size:10.5px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;}
 .card h4{margin:0;font-size:15.5px;line-height:1.3;min-height:2.6em;}
+.price-wrap{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:auto;}
+.card .price-wrap{margin-top:auto;}
 .card .price{
-  font-family:var(--font-mono);font-weight:700;color:var(--magenta-deep);font-size:16px;margin-top:auto;
+  font-family:var(--font-mono);font-weight:700;color:var(--magenta-deep);font-size:16px;
+}
+.price-original{
+  font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);
+  text-decoration:line-through;
+}
+.badge-diskon-inline{
+  font-family:var(--font-mono);font-size:11px;font-weight:700;
+  background:rgba(212,175,55,.18);color:var(--gold);
+  padding:3px 9px;border-radius:999px;
 }
 .card .actions{display:flex;gap:8px;margin-top:10px;}
 .card .actions button{
@@ -405,7 +423,8 @@ footer.site .f-links a{text-decoration:none;border-bottom:1px dashed var(--ink-s
 .modal .m-body{padding:26px;overflow-y:auto;}
 .modal .m-body .kategori{font-family:var(--font-mono);font-size:11px;color:var(--ink-soft);text-transform:uppercase;}
 .modal .m-body h3{font-family:var(--font-display);font-size:20px;margin:8px 0;text-transform:uppercase;}
-.modal .m-body .price{font-family:var(--font-mono);color:var(--magenta-deep);font-weight:700;font-size:20px;margin-bottom:12px;}
+.modal .m-body .price-wrap{margin-bottom:12px;}
+.modal .m-body .price{font-family:var(--font-mono);color:var(--magenta-deep);font-weight:700;font-size:20px;}
 .modal .m-body p.desc{font-size:14px;color:var(--ink-soft);margin-bottom:20px;}
 .modal-close{position:absolute;top:14px;right:14px;background:var(--ink);color:#fff;border:none;width:32px;height:32px;border-radius:50%;font-size:16px;}
 

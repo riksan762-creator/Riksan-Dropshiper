@@ -261,6 +261,19 @@ header.site{
   border-radius:2px;
 }
 
+.promo-banner{
+  display:flex;align-items:center;gap:12px;
+  background:linear-gradient(90deg, var(--magenta) 0%, var(--gold) 100%);
+  color:#fff;
+  padding:14px 20px;border-radius:var(--radius);
+  margin-bottom:24px;
+  box-shadow:var(--shadow);
+  font-weight:600;font-size:14.5px;
+}
+.promo-banner .promo-icon{font-size:20px;animation:promoPulse 1.4s infinite;}
+@keyframes promoPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.15);}}
+.promo-banner .promo-text{flex:1;}
+
 .chips{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:30px;}
 .chip{
   border:2px solid var(--ink);

@@ -28,17 +28,17 @@ const DEFAULT_SETTINGS = {
 
 // Dipakai HANYA sekali untuk mengisi data awal (seed) saat Firestore masih kosong.
 const SEED_PRODUCTS = [
-  { id: "P001", nama: "Kaos Oversize Katun 24s", kategori: "Fashion Pria", harga: 89000, hargaCoret: 120000, stok: 24,
+  { id: "P001", nama: "Kaos Oversize Katun 24s", kategori: "Fashion Pria", harga: 89000, hargaCoret: 120000, stok: 24, rating: 4.8, terjual: 156,
     gambar: "https://placehold.co/500x500/1B1030/FBF6EC?text=Kaos+Oversize", deskripsi: "Bahan katun combed 24s, adem, jahitan rapi." },
-  { id: "P002", nama: "Tas Selempang Mini Kanvas", kategori: "Tas & Aksesoris", harga: 65000, hargaCoret: null, stok: 15,
+  { id: "P002", nama: "Tas Selempang Mini Kanvas", kategori: "Tas & Aksesoris", harga: 65000, hargaCoret: null, stok: 15, rating: 4.6, terjual: 89,
     gambar: "https://placehold.co/500x500/E63E7F/FBF6EC?text=Tas+Selempang", deskripsi: "Kanvas tebal anti sobek, muat HP + dompet." },
-  { id: "P003", nama: "Skincare Serum Niacinamide 20ml", kategori: "Kecantikan", harga: 45000, hargaCoret: null, stok: 0,
+  { id: "P003", nama: "Skincare Serum Niacinamide 20ml", kategori: "Kecantikan", harga: 45000, hargaCoret: null, stok: 0, rating: 4.9, terjual: 312,
     gambar: "https://placehold.co/500x500/12897A/FBF6EC?text=Serum+Niacinamide", deskripsi: "Serum wajah mencerahkan, BPOM." },
-  { id: "P004", nama: "Sepatu Sneakers Sport Grip", kategori: "Sepatu", harga: 149000, hargaCoret: 199000, stok: 8,
+  { id: "P004", nama: "Sepatu Sneakers Sport Grip", kategori: "Sepatu", harga: 149000, hargaCoret: 199000, stok: 8, rating: 4.7, terjual: 64,
     gambar: "https://placehold.co/500x500/1B1030/C6FF3D?text=Sneakers", deskripsi: "Outsole grip anti licin, size 39-44." },
-  { id: "P005", nama: "Case HP Anti Crack Bening", kategori: "Aksesoris HP", harga: 19000, hargaCoret: null, stok: 50,
+  { id: "P005", nama: "Case HP Anti Crack Bening", kategori: "Aksesoris HP", harga: 19000, hargaCoret: null, stok: 50, rating: 4.5, terjual: 421,
     gambar: "https://placehold.co/500x500/B8215C/FBF6EC?text=Case+HP", deskripsi: "Silikon lentur, presisi lubang kamera." },
-  { id: "P006", nama: "Botol Minum Lipat 500ml", kategori: "Peralatan Harian", harga: 35000, hargaCoret: null, stok: 30,
+  { id: "P006", nama: "Botol Minum Lipat 500ml", kategori: "Peralatan Harian", harga: 35000, hargaCoret: null, stok: 30, rating: 4.4, terjual: 47,
     gambar: "https://placehold.co/500x500/3A2C52/FBF6EC?text=Botol+Lipat", deskripsi: "Silikon food grade, bisa dilipat kecil." },
 ];
 
@@ -209,7 +209,7 @@ function renderTable() {
   if (!tbody) return;
   const list = filteredList();
   if (list.length === 0) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="6">Belum ada produk. Klik "Tambah Produk" untuk mulai mengisi katalog.</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="7">Belum ada produk. Klik "Tambah Produk" untuk mulai mengisi katalog.</td></tr>`;
     return;
   }
   tbody.innerHTML = list.map(p => {
@@ -225,6 +225,7 @@ function renderTable() {
       <td>${p.kategori}</td>
       <td>${p.hargaCoret ? `<span style="text-decoration:line-through;color:var(--ink-soft);font-size:11px;display:block;">${rupiah(p.hargaCoret)}</span>${rupiah(p.harga)}` : rupiah(p.harga)}</td>
       <td>${p.stok}</td>
+      <td>${p.rating ? `⭐ ${Number(p.rating).toFixed(1)}` : "-"}<br><span style="font-size:11px;color:var(--ink-soft);">Terjual ${p.terjual || 0}</span></td>
       <td><span class="pill ${habis ? "habis" : "ready"}">${habis ? "Stok Habis" : "Ready"}</span></td>
       <td>
         <div class="row-actions">
@@ -249,6 +250,8 @@ function openProductModal(id) {
   document.getElementById("fHarga").value = p?.harga || "";
   document.getElementById("fHargaCoret").value = p?.hargaCoret || "";
   document.getElementById("fStok").value = p?.stok ?? "";
+  document.getElementById("fRating").value = p?.rating ?? "";
+  document.getElementById("fTerjual").value = p?.terjual ?? 0;
   document.getElementById("fDeskripsi").value = p?.deskripsi || "";
   document.getElementById("fGambar").value = p?.gambar || "";
   document.getElementById("fGambarFile").value = "";
@@ -282,6 +285,9 @@ async function saveProductForm(e) {
   const hargaCoretRaw = document.getElementById("fHargaCoret").value.trim();
   const hargaCoret = hargaCoretRaw ? Number(hargaCoretRaw) : null;
   const stok = Number(document.getElementById("fStok").value);
+  const ratingRaw = document.getElementById("fRating").value.trim();
+  const rating = ratingRaw ? Number(ratingRaw) : null;
+  const terjual = Number(document.getElementById("fTerjual").value || 0);
   const gambar = document.getElementById("fGambar").value.trim() || `https://placehold.co/500x500/1B1030/FBF6EC?text=${encodeURIComponent(nama || "Produk")}`;
   const deskripsi = document.getElementById("fDeskripsi").value.trim();
 
@@ -293,11 +299,19 @@ async function saveProductForm(e) {
     showToast("Harga coret harus lebih besar dari harga jual");
     return;
   }
+  if (rating !== null && (isNaN(rating) || rating < 0 || rating > 5)) {
+    showToast("Rating harus di antara 0 sampai 5");
+    return;
+  }
+  if (isNaN(terjual) || terjual < 0) {
+    showToast("Jumlah terjual tidak valid");
+    return;
+  }
 
   const saveBtn = document.querySelector("#productForm .save");
   if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = "Menyimpan..."; }
 
-  const data = { nama, kategori, harga, hargaCoret, stok, gambar, deskripsi };
+  const data = { nama, kategori, harga, hargaCoret, stok, rating, terjual, gambar, deskripsi };
   const id = editingId || genId();
 
   try {

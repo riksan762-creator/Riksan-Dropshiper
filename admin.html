@@ -133,6 +133,17 @@
               <label for="sBannerTeks">Teks Banner Promo</label>
               <input type="text" id="sBannerTeks" placeholder="Contoh: Flash Sale hari ini! Diskon hingga 30%">
             </div>
+            <div class="field">
+              <label for="fBannerGambarFile">Foto Banner Promo (opsional, dari galeri)</label>
+              <input type="file" id="fBannerGambarFile" accept="image/*">
+              <p class="upload-hint" id="bannerUploadHint">Kalau upload foto, banner di toko otomatis tampil sebagai foto miring — teks di atas jadi keterangan di bawah foto. Kosongkan kalau mau banner teks polos saja.</p>
+            </div>
+            <div class="field">
+              <label>Preview Banner</label>
+              <div class="img-preview" id="bannerPreviewBox"><span>Belum ada foto banner</span></div>
+              <input type="hidden" id="sBannerGambar">
+              <button type="button" class="cancel" id="btnHapusBannerFoto" style="margin-top:8px;">Hapus Foto Banner</button>
+            </div>
             <button class="btn-block" type="submit">Simpan Pengaturan</button>
           </form>
         </div>

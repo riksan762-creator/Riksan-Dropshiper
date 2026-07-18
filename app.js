@@ -1,12 +1,18 @@
 /* =========================================================
-   RIKSAN DROPSHIP — storefront logic
-   Data source: localStorage("riksan_products" / "riksan_settings")
-   Diisi & dikelola lewat admin.html — file ini hanya membaca
-   & menampilkan, plus mengurus keranjang + checkout WhatsApp/Shopee.
+   RIKSAN DROPSHIP — storefront logic (Firestore version)
+   Data produk & pengaturan toko disimpan di Firestore, jadi
+   semua pengunjung (di HP manapun) lihat data yang sama &
+   ter-update otomatis (real-time) tanpa perlu refresh.
+   Keranjang belanja tetap per-pengunjung (sessionStorage).
    ========================================================= */
 
-const LS_PRODUCTS = "riksan_products";
-const LS_SETTINGS = "riksan_settings";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { firebaseConfig } from "./firebase-config.js";
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
 const LS_CART = "riksan_cart";
 
 const DEFAULT_SETTINGS = {
@@ -18,37 +24,6 @@ const DEFAULT_SETTINGS = {
   linkShopee: "",
 };
 
-const DEFAULT_PRODUCTS = [
-  { id: "P001", nama: "Kaos Oversize Katun 24s", kategori: "Fashion Pria", harga: 89000, hargaCoret: 120000, stok: 24,
-    gambar: "https://placehold.co/500x500/1B1030/FBF6EC?text=Kaos+Oversize", deskripsi: "Bahan katun combed 24s, adem, jahitan rapi. Cocok buat dropship harian, fast moving item." },
-  { id: "P002", nama: "Tas Selempang Mini Kanvas", kategori: "Tas & Aksesoris", harga: 65000, hargaCoret: null, stok: 15,
-    gambar: "https://placehold.co/500x500/E63E7F/FBF6EC?text=Tas+Selempang", deskripsi: "Kanvas tebal anti sobek, muat HP + dompet, banyak varian warna." },
-  { id: "P003", nama: "Skincare Serum Niacinamide 20ml", kategori: "Kecantikan", harga: 45000, hargaCoret: null, stok: 0,
-    gambar: "https://placehold.co/500x500/12897A/FBF6EC?text=Serum+Niacinamide", deskripsi: "Serum wajah untuk mencerahkan & meratakan warna kulit, BPOM." },
-  { id: "P004", nama: "Sepatu Sneakers Sport Grip", kategori: "Sepatu", harga: 149000, hargaCoret: 199000, stok: 8,
-    gambar: "https://placehold.co/500x500/1B1030/C6FF3D?text=Sneakers", deskripsi: "Outsole grip anti licin, ringan dipakai seharian, size 39-44." },
-  { id: "P005", nama: "Case HP Anti Crack Bening", kategori: "Aksesoris HP", harga: 19000, hargaCoret: null, stok: 50,
-    gambar: "https://placehold.co/500x500/B8215C/FBF6EC?text=Case+HP", deskripsi: "Silikon lentur, presisi lubang kamera, tersedia semua tipe HP populer." },
-  { id: "P006", nama: "Botol Minum Lipat 500ml", kategori: "Peralatan Harian", harga: 35000, hargaCoret: null, stok: 30,
-    gambar: "https://placehold.co/500x500/3A2C52/FBF6EC?text=Botol+Lipat", deskripsi: "Silikon food grade, bisa dilipat kecil, hemat tempat di tas." },
-];
-
-function getProducts() {
-  const raw = localStorage.getItem(LS_PRODUCTS);
-  if (!raw) {
-    localStorage.setItem(LS_PRODUCTS, JSON.stringify(DEFAULT_PRODUCTS));
-    return [...DEFAULT_PRODUCTS];
-  }
-  try { return JSON.parse(raw); } catch { return [...DEFAULT_PRODUCTS]; }
-}
-function getSettings() {
-  const raw = localStorage.getItem(LS_SETTINGS);
-  if (!raw) {
-    localStorage.setItem(LS_SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
-    return { ...DEFAULT_SETTINGS };
-  }
-  try { return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) }; } catch { return { ...DEFAULT_SETTINGS }; }
-}
 function getCart() {
   try { return JSON.parse(sessionStorage.getItem(LS_CART)) || []; } catch { return []; }
 }
@@ -56,20 +31,45 @@ function saveCart(cart) { sessionStorage.setItem(LS_CART, JSON.stringify(cart));
 function rupiah(n) { return "Rp" + Number(n).toLocaleString("id-ID"); }
 
 let products = [];
-let settings = {};
+let settings = { ...DEFAULT_SETTINGS };
 let activeKategori = "Semua";
 let searchTerm = "";
 
 document.addEventListener("DOMContentLoaded", () => {
-  products = getProducts();
-  settings = getSettings();
-  applyBranding();
-  renderKategoriChips();
-  renderGrid();
-  renderStats();
-  renderCart();
   bindUI();
+  renderCart();
+  listenProducts();
+  listenSettings();
 });
+
+/* ---------- realtime listeners ---------- */
+function listenProducts() {
+  onSnapshot(
+    collection(db, "products"),
+    (snap) => {
+      products = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderKategoriChips();
+      renderGrid();
+      renderStats();
+      renderCart(); // in case a cart item's stock/price changed
+    },
+    (err) => {
+      console.error(err);
+      showToast("Gagal memuat produk — cek koneksi internet");
+    }
+  );
+}
+
+function listenSettings() {
+  onSnapshot(
+    doc(db, "settings", "store"),
+    (snap) => {
+      settings = snap.exists() ? { ...DEFAULT_SETTINGS, ...snap.data() } : { ...DEFAULT_SETTINGS };
+      applyBranding();
+    },
+    (err) => console.error(err)
+  );
+}
 
 function applyBranding() {
   document.querySelectorAll("[data-toko-nama]").forEach(el => el.textContent = settings.namaToko);
@@ -162,6 +162,7 @@ function renderGrid() {
   grid.querySelectorAll("[data-add]").forEach(el => el.addEventListener("click", (e) => { e.stopPropagation(); addToCart(el.dataset.add); }));
 }
 
+/* ---------- modal detail ---------- */
 function openModal(id) {
   const p = products.find(x => x.id === id);
   if (!p) return;
@@ -192,6 +193,7 @@ function openModal(id) {
 }
 function closeModal() { document.getElementById("modalOverlay").classList.remove("show"); }
 
+/* ---------- cart (tetap per-pengunjung, sessionStorage) ---------- */
 function addToCart(id) {
   const p = products.find(x => x.id === id);
   if (!p || Number(p.stok) <= 0) return;
@@ -279,6 +281,7 @@ function closeCart() {
   document.getElementById("overlayBg").classList.remove("show");
 }
 
+/* ---------- checkout ---------- */
 function checkoutWA() {
   const cart = getCart();
   if (cart.length === 0) { showToast("Keranjang masih kosong"); return; }
@@ -310,6 +313,7 @@ function checkoutShopee() {
   window.open(settings.linkShopee, "_blank");
 }
 
+/* ---------- toast ---------- */
 let toastTimer;
 function showToast(msg) {
   const t = document.getElementById("toast");
@@ -320,6 +324,7 @@ function showToast(msg) {
   toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
 }
 
+/* ---------- bind global UI ---------- */
 function bindUI() {
   document.getElementById("openCartBtn")?.addEventListener("click", openCart);
   document.getElementById("closeCartBtn")?.addEventListener("click", closeCart);

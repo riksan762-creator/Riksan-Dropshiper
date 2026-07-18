@@ -23,6 +23,7 @@ const DEFAULT_SETTINGS = {
   linkShopee: "",
   bannerAktif: false,
   bannerTeks: "",
+  bannerGambar: "",
 };
 
 // Dipakai HANYA sekali untuk mengisi data awal (seed) saat Firestore masih kosong.
@@ -336,7 +337,28 @@ function fillSettingsForm() {
   document.getElementById("sLinkShopee").value = settings.linkShopee || "";
   document.getElementById("sBannerAktif").checked = !!settings.bannerAktif;
   document.getElementById("sBannerTeks").value = settings.bannerTeks || "";
+  document.getElementById("sBannerGambar").value = settings.bannerGambar || "";
+  document.getElementById("fBannerGambarFile").value = "";
+  updateBannerPreview();
 }
+
+/* ---------- preview foto banner promo ---------- */
+function updateBannerPreview() {
+  const url = document.getElementById("sBannerGambar").value.trim();
+  const box = document.getElementById("bannerPreviewBox");
+  if (!box) return;
+  box.classList.remove("loading");
+  box.innerHTML = url
+    ? `<img src="${url}" alt="preview banner" onerror="this.parentElement.innerHTML='<span>Gagal memuat gambar</span>'">`
+    : `<span>Belum ada foto banner</span>`;
+}
+function setBannerPreviewLoading() {
+  const box = document.getElementById("bannerPreviewBox");
+  if (!box) return;
+  box.classList.add("loading");
+  box.innerHTML = `<span>Mengompres foto...</span>`;
+}
+
 async function saveSettingsForm(e) {
   e.preventDefault();
   settings = {
@@ -348,9 +370,10 @@ async function saveSettingsForm(e) {
     linkShopee: document.getElementById("sLinkShopee").value.trim(),
     bannerAktif: document.getElementById("sBannerAktif").checked,
     bannerTeks: document.getElementById("sBannerTeks").value.trim(),
+    bannerGambar: document.getElementById("sBannerGambar").value.trim(),
   };
-  if (settings.bannerAktif && !settings.bannerTeks) {
-    showToast("Isi dulu teks bannernya sebelum diaktifkan");
+  if (settings.bannerAktif && !settings.bannerTeks && !settings.bannerGambar) {
+    showToast("Isi teks banner atau upload foto dulu sebelum diaktifkan");
     return;
   }
   const btn = document.querySelector("#settingsForm button[type=submit]");
@@ -405,6 +428,29 @@ function bindShellUI() {
     updateImgPreview();
   });
   document.getElementById("settingsForm")?.addEventListener("submit", saveSettingsForm);
+
+  // upload foto banner promo (dikompres lebih lebar karena bentuknya landscape)
+  document.getElementById("fBannerGambarFile")?.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setBannerPreviewLoading();
+    try {
+      const dataUrl = await compressImage(file, 900, 0.75);
+      document.getElementById("sBannerGambar").value = dataUrl;
+      updateBannerPreview();
+      const kb = Math.round((dataUrl.length * 0.75) / 1024);
+      document.getElementById("bannerUploadHint").textContent = `Foto banner siap dipakai (~${kb} KB setelah dikompres). Jangan lupa klik "Simpan Pengaturan".`;
+    } catch (err) {
+      showToast(err.message || "Gagal memproses foto banner");
+      updateBannerPreview();
+    }
+  });
+  document.getElementById("btnHapusBannerFoto")?.addEventListener("click", () => {
+    document.getElementById("sBannerGambar").value = "";
+    document.getElementById("fBannerGambarFile").value = "";
+    updateBannerPreview();
+    showToast("Foto banner dihapus dari form — klik Simpan Pengaturan untuk menerapkan");
+  });
 
   document.getElementById("tableSearch")?.addEventListener("input", (e) => {
     tableSearch = e.target.value;

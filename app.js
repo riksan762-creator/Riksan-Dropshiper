@@ -175,6 +175,7 @@ function renderGrid() {
       <div class="body">
         <span class="kategori">${p.kategori}</span>
         <h4 data-open="${p.id}">${p.nama}</h4>
+        ${(p.rating || p.terjual) ? `<div class="rating-row">${p.rating ? `⭐ ${Number(p.rating).toFixed(1)}` : ""}${p.rating && p.terjual ? " · " : ""}${p.terjual ? `Terjual ${p.terjual}` : ""}</div>` : ""}
         <div class="price-wrap">
           <span class="price">${rupiah(p.harga)}</span>
           ${diskon > 0 ? `<span class="price-original">${rupiah(p.hargaCoret)}</span>` : ""}
@@ -205,6 +206,7 @@ function openModal(id) {
       <div class="m-body">
         <span class="kategori">${p.kategori}</span>
         <h3>${p.nama}</h3>
+        ${(p.rating || p.terjual) ? `<div class="rating-row modal-rating">${p.rating ? `⭐ ${Number(p.rating).toFixed(1)}` : ""}${p.rating && p.terjual ? " · " : ""}${p.terjual ? `${p.terjual} terjual` : ""}</div>` : ""}
         <div class="price-wrap">
           <span class="price">${rupiah(p.harga)}</span>
           ${diskon > 0 ? `<span class="price-original">${rupiah(p.hargaCoret)}</span><span class="badge-diskon-inline">Hemat ${diskon}%</span>` : ""}

@@ -36,8 +36,6 @@ const DEFAULT_SETTINGS = {
   topbarText: "📦 Kirim ke seluruh Indonesia — dari supplier langsung ke pembeli",
   linkShopee: "",
   bannerAktif: false,
-  bannerTeks: "",
-  bannerGambar: "",
 };
 
 function getCart() {
@@ -47,6 +45,9 @@ function saveCart(cart) { sessionStorage.setItem(LS_CART, JSON.stringify(cart));
 function rupiah(n) { return "Rp" + Number(n).toLocaleString("id-ID"); }
 
 let products = [];
+let banners = [];
+let bannerSlideIndex = 0;
+let bannerTimer = null;
 let settings = { ...DEFAULT_SETTINGS };
 let activeKategori = "Semua";
 let searchTerm = "";
@@ -55,6 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
   bindUI();
   renderCart();
   listenProducts();
+  listenBanners();
   listenSettings();
   bindSpinWheel();
 });
@@ -83,9 +85,78 @@ function listenSettings() {
     (snap) => {
       settings = snap.exists() ? { ...DEFAULT_SETTINGS, ...snap.data() } : { ...DEFAULT_SETTINGS };
       applyBranding();
+      renderBannerSlider();
     },
     (err) => console.error(err)
   );
+}
+
+/* ---------- banner slider (auto geser) ---------- */
+function listenBanners() {
+  onSnapshot(
+    collection(db, "banners"),
+    (snap) => {
+      banners = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (Number(a.urutan) || 0) - (Number(b.urutan) || 0));
+      renderBannerSlider();
+    },
+    (err) => console.error(err)
+  );
+}
+
+function renderBannerSlider() {
+  const wrap = document.getElementById("promoBannerPhoto");
+  const track = document.getElementById("promoBannerTrack");
+  const dots = document.getElementById("promoBannerDots");
+  if (!wrap || !track) return;
+
+  clearInterval(bannerTimer);
+  bannerSlideIndex = 0;
+
+  const showSlider = !!(settings.bannerAktif && banners.length > 0);
+  wrap.style.display = showSlider ? "flex" : "none";
+  if (!showSlider) return;
+
+  track.innerHTML = banners.map(b => `
+    <div class="promo-slide">
+      <img src="${b.gambar}" alt="Banner Promo" loading="lazy">
+      ${b.teks ? `<p class="promo-photo-caption">${b.teks}</p>` : ""}
+    </div>
+  `).join("");
+
+  if (dots) {
+    dots.innerHTML = banners.length > 1
+      ? banners.map((_, i) => `<button class="promo-dot ${i === 0 ? "active" : ""}" data-slide="${i}" aria-label="Slide ${i + 1}"></button>`).join("")
+      : "";
+    dots.querySelectorAll("[data-slide]").forEach(b => b.addEventListener("click", () => goToSlide(Number(b.dataset.slide))));
+  }
+
+  updateSlidePosition();
+
+  if (banners.length > 1) {
+    bannerTimer = setInterval(() => {
+      bannerSlideIndex = (bannerSlideIndex + 1) % banners.length;
+      updateSlidePosition();
+    }, 5000);
+  }
+}
+
+function goToSlide(i) {
+  bannerSlideIndex = i;
+  updateSlidePosition();
+  clearInterval(bannerTimer);
+  if (banners.length > 1) {
+    bannerTimer = setInterval(() => {
+      bannerSlideIndex = (bannerSlideIndex + 1) % banners.length;
+      updateSlidePosition();
+    }, 5000);
+  }
+}
+
+function updateSlidePosition() {
+  const track = document.getElementById("promoBannerTrack");
+  if (track) track.style.transform = `translateX(-${bannerSlideIndex * 100}%)`;
+  document.querySelectorAll(".promo-dot").forEach((d, i) => d.classList.toggle("active", i === bannerSlideIndex));
 }
 
 function applyBranding() {
@@ -107,32 +178,6 @@ function applyBranding() {
   const shopeeDivider = document.getElementById("shopeeDivider");
   if (shopeeCheckoutBtn) shopeeCheckoutBtn.style.display = hasShopee ? "flex" : "none";
   if (shopeeDivider) shopeeDivider.style.display = hasShopee ? "flex" : "none";
-
-  // ---- Banner promo: pakai versi FOTO kalau admin upload gambar,
-  // fallback ke versi TEKS polos kalau cuma teks yang diisi.
-  const banner = document.getElementById("promoBanner");
-  const bannerText = document.getElementById("promoBannerText");
-  const bannerPhotoWrap = document.getElementById("promoBannerPhoto");
-  const bannerImg = document.getElementById("promoBannerImg");
-  const bannerCaption = document.getElementById("promoBannerCaption");
-
-  const bannerOn = !!settings.bannerAktif;
-  const hasFoto = !!(settings.bannerGambar && settings.bannerGambar.trim());
-  const hasTeks = !!(settings.bannerTeks && settings.bannerTeks.trim());
-
-  if (bannerOn && hasFoto) {
-    if (bannerPhotoWrap) bannerPhotoWrap.style.display = "flex";
-    if (bannerImg) bannerImg.src = settings.bannerGambar;
-    if (bannerCaption) bannerCaption.textContent = hasTeks ? settings.bannerTeks : "";
-    if (banner) banner.style.display = "none";
-  } else if (bannerOn && hasTeks) {
-    if (bannerPhotoWrap) bannerPhotoWrap.style.display = "none";
-    if (banner) banner.style.display = "flex";
-    if (bannerText) bannerText.textContent = settings.bannerTeks;
-  } else {
-    if (bannerPhotoWrap) bannerPhotoWrap.style.display = "none";
-    if (banner) banner.style.display = "none";
-  }
 }
 
 function renderKategoriChips() {

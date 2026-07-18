@@ -21,6 +21,8 @@ const DEFAULT_SETTINGS = {
   alamat: "Gudang Titipan — Kirim dari Supplier Terpercaya",
   topbarText: "📦 Kirim ke seluruh Indonesia — dari supplier langsung ke pembeli",
   linkShopee: "",
+  bannerAktif: false,
+  bannerTeks: "",
 };
 
 // Dipakai HANYA sekali untuk mengisi data awal (seed) saat Firestore masih kosong.
@@ -332,6 +334,8 @@ function fillSettingsForm() {
   document.getElementById("sNoWA").value = settings.noWA;
   document.getElementById("sAlamat").value = settings.alamat;
   document.getElementById("sLinkShopee").value = settings.linkShopee || "";
+  document.getElementById("sBannerAktif").checked = !!settings.bannerAktif;
+  document.getElementById("sBannerTeks").value = settings.bannerTeks || "";
 }
 async function saveSettingsForm(e) {
   e.preventDefault();
@@ -342,7 +346,13 @@ async function saveSettingsForm(e) {
     noWA: document.getElementById("sNoWA").value.trim().replace(/[^0-9]/g, ""),
     alamat: document.getElementById("sAlamat").value.trim(),
     linkShopee: document.getElementById("sLinkShopee").value.trim(),
+    bannerAktif: document.getElementById("sBannerAktif").checked,
+    bannerTeks: document.getElementById("sBannerTeks").value.trim(),
   };
+  if (settings.bannerAktif && !settings.bannerTeks) {
+    showToast("Isi dulu teks bannernya sebelum diaktifkan");
+    return;
+  }
   const btn = document.querySelector("#settingsForm button[type=submit]");
   if (btn) { btn.disabled = true; btn.textContent = "Menyimpan..."; }
   try {

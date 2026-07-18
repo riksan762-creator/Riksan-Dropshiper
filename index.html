@@ -65,10 +65,22 @@
 
 <section class="section" id="katalog">
   <div class="container">
+
+    <!-- Banner promo versi FOTO (dipakai kalau admin upload gambar) -->
+    <div class="promo-photo-wrap" id="promoBannerPhoto" style="display:none;">
+      <div class="promo-photo-frame">
+        <span class="promo-photo-tag">🔥 PROMO</span>
+        <img id="promoBannerImg" src="" alt="Banner Promo">
+        <p class="promo-photo-caption" id="promoBannerCaption"></p>
+      </div>
+    </div>
+
+    <!-- Banner promo versi TEKS (fallback kalau tidak ada foto) -->
     <div class="promo-banner" id="promoBanner" style="display:none;">
       <span class="promo-icon">🔥</span>
       <span class="promo-text" id="promoBannerText"></span>
     </div>
+
     <div class="section-head">
       <div>
         <span class="eyebrow-sm">Katalog</span>

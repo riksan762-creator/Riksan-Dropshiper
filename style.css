@@ -511,6 +511,93 @@ footer.site .f-links a{text-decoration:none;border-bottom:1px dashed var(--ink-s
 .wa-float small{
   display:block;font-family:var(--font-mono);font-weight:400;font-size:10px;opacity:.9;
 }
+.icon-wa, .icon-shopee{flex-shrink:0;}
+.wa-checkout, .shopee-checkout, .btn-shopee, .wa-float{gap:10px;}
+
+/* ---- Spin wheel: floating button ---- */
+.spin-fab{
+  position:fixed;bottom:22px;left:22px;z-index:80;
+  background:linear-gradient(135deg, var(--gold) 0%, var(--magenta) 100%);
+  color:#fff;border:none;border-radius:999px;
+  padding:12px 18px;display:flex;align-items:center;gap:10px;
+  font-weight:700;box-shadow:var(--shadow);font-family:var(--font-body);
+  animation:spinFabPulse 2.4s infinite;
+}
+.spin-fab-icon{font-size:22px;}
+.spin-fab-text{text-align:left;line-height:1.2;}
+.spin-fab-text small{
+  display:block;font-family:var(--font-mono);font-weight:400;font-size:10px;opacity:.9;
+}
+@keyframes spinFabPulse{
+  0%,100%{box-shadow:var(--shadow);}
+  50%{box-shadow:0 0 0 8px rgba(212,175,55,.25), var(--shadow);}
+}
+
+/* ---- Spin wheel: modal ---- */
+.spin-overlay{
+  position:fixed;inset:0;background:rgba(27,16,48,.65);
+  display:none;align-items:center;justify-content:center;z-index:99;padding:20px;
+}
+.spin-overlay.show{display:flex;}
+.spin-modal{
+  background:var(--paper);border-radius:var(--radius);max-width:380px;width:100%;
+  padding:26px 22px 24px;position:relative;text-align:center;
+  border:2px solid var(--ink);
+  box-shadow:var(--shadow-lg), var(--glow-gold);
+  max-height:92vh;overflow-y:auto;
+}
+.spin-modal h3{
+  font-family:var(--font-display);font-size:19px;margin:4px 0 8px;text-transform:uppercase;
+}
+.spin-sub{font-size:13px;color:var(--ink-soft);margin:0 0 6px;line-height:1.5;}
+
+.wheel-wrap{position:relative;width:250px;height:250px;margin:14px auto 18px;}
+.wheel-pointer{
+  position:absolute;top:-16px;left:50%;transform:translateX(-50%);
+  font-size:26px;color:var(--magenta-deep);z-index:5;
+  filter:drop-shadow(0 2px 2px rgba(0,0,0,.35));
+}
+.wheel{
+  width:100%;height:100%;border-radius:50%;
+  border:6px solid var(--ink);
+  position:relative;
+  box-shadow:0 0 0 3px var(--gold), var(--shadow-lg);
+  transform:rotate(0deg);
+}
+.wheel-label{
+  position:absolute;top:50%;left:50%;
+  transform-origin:0 0;
+  font-family:var(--font-mono);font-weight:700;font-size:11px;color:#fff;
+  text-shadow:0 1px 2px rgba(0,0,0,.5);
+  white-space:nowrap;
+  pointer-events:none;
+}
+.spin-btn{margin-top:4px;}
+.spin-btn:disabled{opacity:.5;cursor:not-allowed;}
+
+.spin-result{margin-top:18px;border-top:2px dashed var(--line);padding-top:16px;}
+.spin-result-title{
+  font-family:var(--font-display);font-size:16px;text-transform:uppercase;
+  color:var(--magenta-deep);margin:0 0 12px;line-height:1.4;
+}
+.voucher-box{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:#fff;border:2px dashed var(--gold);border-radius:10px;
+  padding:10px 14px;margin-bottom:14px;
+}
+.voucher-box span{
+  font-family:var(--font-mono);font-weight:700;font-size:16px;letter-spacing:.05em;color:var(--ink);
+}
+.voucher-box button{
+  background:var(--ink);color:#fff;border:none;border-radius:999px;
+  padding:6px 14px;font-size:12px;font-weight:600;
+}
+
+@media (max-width:420px){
+  .wheel-wrap{width:220px;height:220px;}
+  .spin-fab-text{display:none;}
+  .spin-fab{padding:14px;border-radius:50%;}
+}
 
 .toast{
   position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);

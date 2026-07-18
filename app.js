@@ -22,6 +22,8 @@ const DEFAULT_SETTINGS = {
   alamat: "Gudang Titipan — Kirim dari Supplier Terpercaya",
   topbarText: "📦 Kirim ke seluruh Indonesia — dari supplier langsung ke pembeli",
   linkShopee: "",
+  bannerAktif: false,
+  bannerTeks: "",
 };
 
 function getCart() {
@@ -51,7 +53,7 @@ function listenProducts() {
       renderKategoriChips();
       renderGrid();
       renderStats();
-      renderCart(); // in case a cart item's stock/price changed
+      renderCart();
     },
     (err) => {
       console.error(err);
@@ -90,6 +92,12 @@ function applyBranding() {
   const shopeeDivider = document.getElementById("shopeeDivider");
   if (shopeeCheckoutBtn) shopeeCheckoutBtn.style.display = hasShopee ? "flex" : "none";
   if (shopeeDivider) shopeeDivider.style.display = hasShopee ? "flex" : "none";
+
+  const banner = document.getElementById("promoBanner");
+  const bannerText = document.getElementById("promoBannerText");
+  const showBanner = !!(settings.bannerAktif && settings.bannerTeks && settings.bannerTeks.trim());
+  if (banner) banner.style.display = showBanner ? "flex" : "none";
+  if (bannerText && showBanner) bannerText.textContent = settings.bannerTeks;
 }
 
 function renderKategoriChips() {

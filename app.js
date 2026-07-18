@@ -14,6 +14,19 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const LS_CART = "riksan_cart";
+const SPIN_KEY = "riksan_spin_result";
+
+/* Hadiah roda putar — weight menentukan peluang (semakin besar makin sering keluar) */
+const PRIZES = [
+  { label: "5%", full: "Diskon 5%", type: "diskon", value: 5,  color: "var(--magenta)",     weight: 25 },
+  { label: "10%", full: "Diskon 10%", type: "diskon", value: 10, color: "var(--gold)",        weight: 18 },
+  { label: "🚚 Free", full: "Ongkir Gratis*", type: "ongkir", value: 0, color: "var(--ink)",  weight: 15 },
+  { label: "3%", full: "Diskon 3%", type: "diskon", value: 3,  color: "var(--teal)",        weight: 20 },
+  { label: "15%", full: "Diskon 15%", type: "diskon", value: 15, color: "var(--magenta-deep)", weight: 10 },
+  { label: "😅 Lagi", full: "Belum beruntung", type: "none", value: 0, color: "var(--lime)", weight: 5 },
+  { label: "20%", full: "Diskon 20%", type: "diskon", value: 20, color: "var(--ink-soft)",   weight: 4 },
+  { label: "8%", full: "Diskon 8%", type: "diskon", value: 8,  color: "var(--gold-soft)",   weight: 15 },
+];
 
 const DEFAULT_SETTINGS = {
   namaToko: "Riksan Dropship",
@@ -43,6 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderCart();
   listenProducts();
   listenSettings();
+  bindSpinWheel();
 });
 
 /* ---------- realtime listeners ---------- */
@@ -325,11 +339,16 @@ function checkoutWA() {
     return `${i + 1}. ${p.nama} x${c.qty} = ${rupiah(subtotal)}`;
   }).join("\n");
 
+  const spin = getSpinResult();
+  const voucherLine = (spin && spin.type !== "none")
+    ? `\nKode Voucher: ${spin.code} (${spin.full}) — mohon dicek & diterapkan ya 🙏\n`
+    : "";
+
   const pesan =
 `Halo ${settings.namaToko}, saya mau pesan:
 
 ${lines}
-
+${voucherLine}
 Total: ${rupiah(total)}
 
 Mohon info ongkir & cara pembayarannya ya. Terima kasih 🙏`;
@@ -353,6 +372,125 @@ function showToast(msg) {
   t.classList.add("show");
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+/* ---------- spin wheel diskon ---------- */
+function getSpinResult() {
+  try { return JSON.parse(sessionStorage.getItem(SPIN_KEY)); } catch { return null; }
+}
+function saveSpinResult(result) {
+  sessionStorage.setItem(SPIN_KEY, JSON.stringify(result));
+}
+function genVoucherCode() {
+  return "SPIN" + Math.random().toString(36).slice(2, 6).toUpperCase();
+}
+
+function buildWheel() {
+  const wheel = document.getElementById("spinWheel");
+  if (!wheel) return;
+  const segAngle = 360 / PRIZES.length;
+  const gradientStops = PRIZES.map((p, i) => `${p.color} ${i * segAngle}deg ${(i + 1) * segAngle}deg`).join(", ");
+  wheel.style.background = `conic-gradient(${gradientStops})`;
+  wheel.innerHTML = PRIZES.map((p, i) => {
+    const angle = i * segAngle + segAngle / 2;
+    return `<span class="wheel-label" style="transform:translate(-50%,-50%) rotate(${angle}deg) translateY(-92px) rotate(${-angle}deg);">${p.label}</span>`;
+  }).join("");
+}
+
+function pickPrizeIndex() {
+  const total = PRIZES.reduce((a, p) => a + p.weight, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < PRIZES.length; i++) {
+    r -= PRIZES[i].weight;
+    if (r <= 0) return i;
+  }
+  return PRIZES.length - 1;
+}
+
+function spinNow() {
+  const wheel = document.getElementById("spinWheel");
+  const spinBtn = document.getElementById("spinActionBtn");
+  if (!wheel || spinBtn.disabled) return;
+
+  spinBtn.disabled = true;
+  spinBtn.textContent = "Menggulir...";
+
+  const idx = pickPrizeIndex();
+  const segAngle = 360 / PRIZES.length;
+  const segCenter = idx * segAngle + segAngle / 2;
+  const jitter = (Math.random() * segAngle * 0.5) - segAngle * 0.25;
+  const extraSpins = 6 * 360;
+  const targetRotation = extraSpins + (360 - segCenter) + jitter;
+
+  wheel.style.transition = "transform 4.2s cubic-bezier(.15,.7,.2,1)";
+  wheel.style.transform = `rotate(${targetRotation}deg)`;
+
+  setTimeout(() => finishSpin(idx), 4300);
+}
+
+function finishSpin(idx) {
+  const prize = PRIZES[idx];
+  const result = {
+    label: prize.label,
+    full: prize.full,
+    type: prize.type,
+    value: prize.value,
+    code: prize.type !== "none" ? genVoucherCode() : null,
+  };
+  saveSpinResult(result);
+  showSpinResult(result);
+}
+
+function showSpinResult(result) {
+  const spinBtn = document.getElementById("spinActionBtn");
+  const resultBox = document.getElementById("spinResult");
+  const resultTitle = document.getElementById("spinResultTitle");
+  const voucherBox = document.getElementById("voucherBox");
+  const voucherCode = document.getElementById("voucherCode");
+  const sub = document.getElementById("spinSub");
+
+  if (spinBtn) { spinBtn.style.display = "none"; }
+  if (sub) sub.style.display = "none";
+  if (resultBox) resultBox.style.display = "block";
+
+  if (result.type === "none") {
+    if (resultTitle) resultTitle.textContent = `😅 Yah, ${result.full.toLowerCase()} kali ini. Coba lagi lain waktu ya!`;
+    if (voucherBox) voucherBox.style.display = "none";
+  } else {
+    if (resultTitle) resultTitle.textContent = `🎉 Selamat! Kamu dapat ${result.full}`;
+    if (voucherBox) voucherBox.style.display = "flex";
+    if (voucherCode) voucherCode.textContent = result.code;
+  }
+}
+
+function openSpinModal() {
+  document.getElementById("spinOverlay")?.classList.add("show");
+  const existing = getSpinResult();
+  if (existing) {
+    showSpinResult(existing);
+  }
+}
+function closeSpinModal() {
+  document.getElementById("spinOverlay")?.classList.remove("show");
+}
+
+function bindSpinWheel() {
+  buildWheel();
+  document.getElementById("spinFabBtn")?.addEventListener("click", openSpinModal);
+  document.getElementById("closeSpinModal")?.addEventListener("click", closeSpinModal);
+  document.getElementById("spinOverlay")?.addEventListener("click", (e) => {
+    if (e.target.id === "spinOverlay") closeSpinModal();
+  });
+  document.getElementById("spinActionBtn")?.addEventListener("click", spinNow);
+  document.getElementById("copyVoucherBtn")?.addEventListener("click", () => {
+    const code = document.getElementById("voucherCode")?.textContent;
+    if (!code) return;
+    navigator.clipboard?.writeText(code).then(() => showToast("Kode voucher disalin!"));
+  });
+  document.getElementById("spinCheckoutBtn")?.addEventListener("click", () => {
+    closeSpinModal();
+    openCart();
+  });
 }
 
 /* ---------- bind global UI ---------- */

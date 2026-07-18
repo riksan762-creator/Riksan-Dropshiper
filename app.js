@@ -24,6 +24,7 @@ const DEFAULT_SETTINGS = {
   linkShopee: "",
   bannerAktif: false,
   bannerTeks: "",
+  bannerGambar: "",
 };
 
 function getCart() {
@@ -93,11 +94,31 @@ function applyBranding() {
   if (shopeeCheckoutBtn) shopeeCheckoutBtn.style.display = hasShopee ? "flex" : "none";
   if (shopeeDivider) shopeeDivider.style.display = hasShopee ? "flex" : "none";
 
+  // ---- Banner promo: pakai versi FOTO kalau admin upload gambar,
+  // fallback ke versi TEKS polos kalau cuma teks yang diisi.
   const banner = document.getElementById("promoBanner");
   const bannerText = document.getElementById("promoBannerText");
-  const showBanner = !!(settings.bannerAktif && settings.bannerTeks && settings.bannerTeks.trim());
-  if (banner) banner.style.display = showBanner ? "flex" : "none";
-  if (bannerText && showBanner) bannerText.textContent = settings.bannerTeks;
+  const bannerPhotoWrap = document.getElementById("promoBannerPhoto");
+  const bannerImg = document.getElementById("promoBannerImg");
+  const bannerCaption = document.getElementById("promoBannerCaption");
+
+  const bannerOn = !!settings.bannerAktif;
+  const hasFoto = !!(settings.bannerGambar && settings.bannerGambar.trim());
+  const hasTeks = !!(settings.bannerTeks && settings.bannerTeks.trim());
+
+  if (bannerOn && hasFoto) {
+    if (bannerPhotoWrap) bannerPhotoWrap.style.display = "flex";
+    if (bannerImg) bannerImg.src = settings.bannerGambar;
+    if (bannerCaption) bannerCaption.textContent = hasTeks ? settings.bannerTeks : "";
+    if (banner) banner.style.display = "none";
+  } else if (bannerOn && hasTeks) {
+    if (bannerPhotoWrap) bannerPhotoWrap.style.display = "none";
+    if (banner) banner.style.display = "flex";
+    if (bannerText) bannerText.textContent = settings.bannerTeks;
+  } else {
+    if (bannerPhotoWrap) bannerPhotoWrap.style.display = "none";
+    if (banner) banner.style.display = "none";
+  }
 }
 
 function renderKategoriChips() {

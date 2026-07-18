@@ -40,7 +40,10 @@
       <p class="lead" data-toko-tagline>Belanja Sat-Set, Chat Admin, Barang Meluncur</p>
       <div class="hero-ctas">
         <a href="#katalog" class="btn btn-primary">📋 Lihat Katalog</a>
-        <a href="#" id="btnShopeeHero" class="btn btn-shopee" target="_blank" rel="noopener" style="display:none;">🛍️ Beli di Shopee</a>
+        <a href="#" id="btnShopeeHero" class="btn btn-shopee" target="_blank" rel="noopener" style="display:none;">
+          <svg class="icon-shopee" viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M12 2c-2.1 0-3.8 1.7-3.8 3.8V7H4.6L3 21h18l-1.6-14h-3.6V5.8C15.8 3.7 14.1 2 12 2zm0 1.6c1.2 0 2.2 1 2.2 2.2V7H9.8V5.8c0-1.2 1-2.2 2.2-2.2z" fill="#fff"/></svg>
+          Beli di Shopee
+        </a>
       </div>
     </div>
     <div class="hero-receipt">
@@ -94,9 +97,9 @@
 
 <section class="trust">
   <div class="container">
-    <div class="t-item"><b>🔒 Transaksi Aman</b>Order & konfirmasi langsung lewat WhatsApp, jelas ada admin yang balas.</div>
-    <div class="t-item"><b>🚚 Kirim dari Supplier</b>Barang dikirim langsung tanpa kamu perlu stok sendiri.</div>
-    <div class="t-item"><b>💯 Produk Berkualitas</b>Temukan produk pilihan dengan kualitas terbaik, harga kompetitif, dan siap dikirim ke seluruh Indonesia.</div>
+    <div class="t-item"><b>🔒 Transaksi Aman</b>Chat langsung, direspon cepat — setiap pesanan dikonfirmasi jelas lewat WhatsApp, nggak ada yang ngambang.</div>
+    <div class="t-item"><b>🚚 Kirim dari Supplier</b>Barang meluncur langsung dari gudang terpercaya ke rumahmu — kamu nggak perlu ribet stok sendiri.</div>
+    <div class="t-item"><b>✨ Katalog Selalu Fresh</b>Produk, harga, dan promo diperbarui rutin — apa yang kamu lihat di sini selalu yang paling baru.</div>
   </div>
 </section>
 
@@ -123,9 +126,15 @@
   <div class="drawer-items" id="cartItems"></div>
   <div class="drawer-foot">
     <div class="row total"><span>Total</span><span id="cartTotal">Rp0</span></div>
-    <button class="wa-checkout" id="waCheckoutBtn">💬 Checkout via WhatsApp</button>
+    <button class="wa-checkout" id="waCheckoutBtn">
+      <svg class="icon-wa" viewBox="0 0 24 24" width="18" height="18"><path fill="#fff" d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.36 5.07L2 22l5.06-1.33A9.94 9.94 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm5.2 14.2c-.22.62-1.28 1.18-1.77 1.24-.45.06-1.03.09-1.66-.1-.38-.12-.87-.28-1.5-.55-2.64-1.14-4.36-3.8-4.5-3.98-.13-.18-1.08-1.44-1.08-2.75 0-1.3.68-1.94.92-2.2.24-.26.53-.32.7-.32.18 0 .35 0 .5.01.16.01.38-.06.6.46.22.53.75 1.83.82 1.96.07.13.11.29.02.47-.09.18-.14.29-.27.44-.13.16-.28.35-.4.47-.13.13-.27.28-.12.55.16.27.7 1.16 1.51 1.88 1.04.93 1.91 1.22 2.18 1.35.27.14.43.12.59-.07.16-.18.68-.79.86-1.06.18-.27.36-.22.6-.13.24.09 1.52.72 1.78.85.26.13.43.19.5.3.06.11.06.63-.15 1.24z"/></svg>
+      Checkout via WhatsApp
+    </button>
     <div class="checkout-divider" id="shopeeDivider" style="display:none;">atau</div>
-    <button class="shopee-checkout" id="shopeeCheckoutBtn" style="display:none;">🛍️ Checkout via Shopee</button>
+    <button class="shopee-checkout" id="shopeeCheckoutBtn" style="display:none;">
+      <svg class="icon-shopee" viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M12 2c-2.1 0-3.8 1.7-3.8 3.8V7H4.6L3 21h18l-1.6-14h-3.6V5.8C15.8 3.7 14.1 2 12 2zm0 1.6c1.2 0 2.2 1 2.2 2.2V7H9.8V5.8c0-1.2 1-2.2 2.2-2.2z" fill="#fff"/></svg>
+      Checkout via Shopee
+    </button>
   </div>
 </aside>
 
@@ -134,8 +143,40 @@
 
 <!-- Floating WA -->
 <a class="wa-float" id="waFloatLink" href="#" target="_blank" rel="noopener">
-  💬 <span>Chat Admin<br><small>Tanya-tanya dulu boleh</small></span>
+  <svg class="icon-wa" viewBox="0 0 24 24" width="22" height="22"><path fill="#fff" d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.36 5.07L2 22l5.06-1.33A9.94 9.94 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm5.2 14.2c-.22.62-1.28 1.18-1.77 1.24-.45.06-1.03.09-1.66-.1-.38-.12-.87-.28-1.5-.55-2.64-1.14-4.36-3.8-4.5-3.98-.13-.18-1.08-1.44-1.08-2.75 0-1.3.68-1.94.92-2.2.24-.26.53-.32.7-.32.18 0 .35 0 .5.01.16.01.38-.06.6.46.22.53.75 1.83.82 1.96.07.13.11.29.02.47-.09.18-.14.29-.27.44-.13.16-.28.35-.4.47-.13.13-.27.28-.12.55.16.27.7 1.16 1.51 1.88 1.04.93 1.91 1.22 2.18 1.35.27.14.43.12.59-.07.16-.18.68-.79.86-1.06.18-.27.36-.22.6-.13.24.09 1.52.72 1.78.85.26.13.43.19.5.3.06.11.06.63-.15 1.24z"/></svg>
+  <span>Chat Admin<br><small>Tanya-tanya dulu boleh</small></span>
 </a>
+
+<!-- Spin Wheel: FAB -->
+<button class="spin-fab" id="spinFabBtn" aria-label="Putar untuk diskon">
+  <span class="spin-fab-icon">🎁</span>
+  <span class="spin-fab-text">Spin<br><small>Menangkan diskon!</small></span>
+</button>
+
+<!-- Spin Wheel: Modal -->
+<div class="spin-overlay" id="spinOverlay">
+  <div class="spin-modal">
+    <button class="modal-close" id="closeSpinModal">&times;</button>
+    <h3>🎉 Putar & Menangkan Diskon!</h3>
+    <p class="spin-sub" id="spinSub">Satu kali putaran gratis. Kode diskon otomatis kepake pas checkout WhatsApp.</p>
+
+    <div class="wheel-wrap">
+      <div class="wheel-pointer">▼</div>
+      <div class="wheel" id="spinWheel"></div>
+    </div>
+
+    <button class="btn btn-primary spin-btn" id="spinActionBtn" style="width:100%;justify-content:center;">Putar Sekarang</button>
+
+    <div class="spin-result" id="spinResult" style="display:none;">
+      <p class="spin-result-title" id="spinResultTitle"></p>
+      <div class="voucher-box" id="voucherBox" style="display:none;">
+        <span id="voucherCode"></span>
+        <button id="copyVoucherBtn" type="button">Salin</button>
+      </div>
+      <button class="btn btn-primary" id="spinCheckoutBtn" style="width:100%;justify-content:center;">Checkout Sekarang</button>
+    </div>
+  </div>
+</div>
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>

@@ -6,6 +6,15 @@
 <title>Admin Panel — Riksan Dropship</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧾</text></svg>">
 <link rel="stylesheet" href="admin.css">
+<style>
+  .category-input-row{display:flex;gap:8px;margin-bottom:10px;}
+  .category-input-row input{flex:1;}
+  .category-input-row button{background:#1B1030;color:#fff;border:none;border-radius:8px;padding:0 16px;font-weight:600;font-size:13px;white-space:nowrap;cursor:pointer;}
+  .category-chips{display:flex;flex-wrap:wrap;gap:8px;}
+  .kategori-chip{display:inline-flex;align-items:center;gap:6px;background:#F1E9D8;border:1px solid #D8CBB0;border-radius:999px;padding:5px 6px 5px 12px;font-size:12.5px;}
+  .kategori-chip button{background:#1B1030;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:12px;line-height:1;cursor:pointer;}
+  .banner-thumb{width:70px;height:40px;object-fit:cover;border-radius:6px;border:1px solid #D8CBB0;display:block;}
+</style>
 </head>
 <body>
 
@@ -41,6 +50,7 @@
     <nav>
       <button class="nav-item active" data-view="viewDashboard">📊 Dashboard</button>
       <button class="nav-item" data-view="viewProduk">📦 Kelola Produk</button>
+      <button class="nav-item" data-view="viewBanner">🖼️ Kelola Banner</button>
       <button class="nav-item" data-view="viewPengaturan">⚙️ Pengaturan Toko</button>
     </nav>
     <div class="foot">
@@ -105,6 +115,28 @@
         </div>
       </section>
 
+      <!-- KELOLA BANNER -->
+      <section class="view-panel" id="viewBanner">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Banner Promo (Slider)</h3>
+            <button class="btn-add" id="btnAddBanner">+ Tambah Banner</button>
+          </div>
+          <p style="font-size:13px;color:var(--ink-soft,#3A2C52);margin:-6px 0 16px;line-height:1.6;">
+            Banner di sini tampil bergantian otomatis di halaman toko (geser tiap 5 detik). Bisa nambah lebih dari satu.
+            Urutan menentukan giliran tampil — angka kecil duluan. Pastikan toggle "Aktifkan Banner Promo" di Pengaturan Toko juga nyala.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Preview</th><th>Teks</th><th>Urutan</th><th>Aksi</th></tr>
+              </thead>
+              <tbody id="bannerTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       <!-- PENGATURAN -->
       <section class="view-panel" id="viewPengaturan">
         <div class="panel" style="max-width:560px;">
@@ -129,21 +161,20 @@
               <input type="checkbox" id="sBannerAktif" style="width:18px;height:18px;">
               <label for="sBannerAktif" style="margin:0;">Aktifkan Banner Promo di Toko</label>
             </div>
+            <p class="upload-hint" style="margin:-6px 0 4px;">Isi banner (foto + teks + urutan) dikelola di menu <b>🖼️ Kelola Banner</b>, bukan di sini.</p>
+
             <div class="field">
-              <label for="sBannerTeks">Teks Banner Promo</label>
-              <input type="text" id="sBannerTeks" placeholder="Contoh: Flash Sale hari ini! Diskon hingga 30%">
+              <label>Kelola Kategori Produk</label>
+              <div class="category-manager">
+                <div class="category-input-row">
+                  <input type="text" id="newKategoriInput" placeholder="Nama kategori baru...">
+                  <button type="button" id="btnAddKategori">+ Tambah</button>
+                </div>
+                <div class="category-chips" id="kategoriChipsList"></div>
+              </div>
+              <p class="upload-hint">Kategori yang ditambah di sini otomatis muncul sebagai pilihan dropdown saat tambah/edit produk — nggak perlu ketik manual lagi, jadi nggak ada typo beda-beda.</p>
             </div>
-            <div class="field">
-              <label for="fBannerGambarFile">Foto Banner Promo (opsional, dari galeri)</label>
-              <input type="file" id="fBannerGambarFile" accept="image/*">
-              <p class="upload-hint" id="bannerUploadHint">Kalau upload foto, banner di toko otomatis tampil sebagai foto miring — teks di atas jadi keterangan di bawah foto. Kosongkan kalau mau banner teks polos saja.</p>
-            </div>
-            <div class="field">
-              <label>Preview Banner</label>
-              <div class="img-preview" id="bannerPreviewBox"><span>Belum ada foto banner</span></div>
-              <input type="hidden" id="sBannerGambar">
-              <button type="button" class="cancel" id="btnHapusBannerFoto" style="margin-top:8px;">Hapus Foto Banner</button>
-            </div>
+
             <button class="btn-block" type="submit">Simpan Pengaturan</button>
           </form>
         </div>
@@ -166,7 +197,7 @@
         </div>
         <div class="field">
           <label for="fKategori">Kategori *</label>
-          <input type="text" id="fKategori" placeholder="Contoh: Fashion Pria" required>
+          <select id="fKategori" required></select>
         </div>
         <div class="field">
           <label for="fHarga">Harga Jual (Rp) *</label>
@@ -218,6 +249,40 @@
 </div>
 
 <div class="toast" id="toastAdmin"></div>
+
+<!-- MODAL: TAMBAH/EDIT BANNER -->
+<div class="modal-overlay" id="bannerModal">
+  <div class="modal-box">
+    <button class="modal-close" id="closeBannerModal">&times;</button>
+    <h3 id="bannerModalTitle">Tambah Banner</h3>
+    <form id="bannerForm">
+      <div class="form-grid">
+        <div class="field full">
+          <label for="bGambarFile">Upload Foto Banner *</label>
+          <input type="file" id="bGambarFile" accept="image/*">
+          <p class="upload-hint" id="bannerFormUploadHint">Rasio landscape lebar (misal 1200x525) paling pas. Foto otomatis dikompres.</p>
+        </div>
+        <div class="field full">
+          <label>Preview</label>
+          <div class="img-preview" id="bannerFormPreviewBox"><span>Belum ada foto</span></div>
+          <input type="hidden" id="bGambar">
+        </div>
+        <div class="field full">
+          <label for="bTeks">Teks / Caption (opsional)</label>
+          <input type="text" id="bTeks" placeholder="Contoh: Flash Sale hari ini! Diskon hingga 30%">
+        </div>
+        <div class="field">
+          <label for="bUrutan">Urutan Tampil</label>
+          <input type="number" id="bUrutan" min="0" step="1" value="0">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="cancel" id="cancelBannerForm">Batal</button>
+        <button type="submit" class="save">Simpan Banner</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 <script type="module" src="admin.js"></script>
 </body>

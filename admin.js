@@ -22,8 +22,7 @@ const DEFAULT_SETTINGS = {
   topbarText: "📦 Kirim ke seluruh Indonesia — dari supplier langsung ke pembeli",
   linkShopee: "",
   bannerAktif: false,
-  bannerTeks: "",
-  bannerGambar: "",
+  kategoriList: ["Fashion Pria", "Tas & Aksesoris", "Kecantikan", "Sepatu", "Aksesoris HP", "Peralatan Harian"],
 };
 
 // Dipakai HANYA sekali untuk mengisi data awal (seed) saat Firestore masih kosong.
@@ -43,7 +42,7 @@ const SEED_PRODUCTS = [
 ];
 
 function rupiah(n) { return "Rp" + Number(n || 0).toLocaleString("id-ID"); }
-function genId() { return "P" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 5).toUpperCase(); }
+function genId(prefix = "P") { return prefix + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 5).toUpperCase(); }
 
 /* ---------- kompres foto upload jadi base64 ringan ---------- */
 function compressImage(file, maxDim = 700, startQuality = 0.72) {
@@ -79,11 +78,14 @@ function compressImage(file, maxDim = 700, startQuality = 0.72) {
 
 /* ---------- state ---------- */
 let products = [];
+let banners = [];
 let settings = { ...DEFAULT_SETTINGS };
 let editingId = null;
+let editingBannerId = null;
 let tableSearch = "";
 let tableKategori = "Semua";
 let unsubProducts = null;
+let unsubBanners = null;
 let boundOnce = false;
 
 /* ---------- auth ---------- */
@@ -102,6 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
       loginWrap.style.display = "flex";
       shell.style.display = "none";
       if (unsubProducts) { unsubProducts(); unsubProducts = null; }
+      if (unsubBanners) { unsubBanners(); unsubBanners = null; }
     }
   });
 
@@ -127,6 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function boot() {
     await seedIfEmpty();
     listenProducts();
+    listenBanners();
     await loadSettings();
     if (!boundOnce) { bindShellUI(); boundOnce = true; }
   }
@@ -163,6 +167,23 @@ function listenProducts() {
     (err) => {
       console.error(err);
       showToast("Gagal memuat produk — cek koneksi internet");
+    }
+  );
+}
+
+/* ---------- realtime banners ---------- */
+function listenBanners() {
+  if (unsubBanners) unsubBanners();
+  unsubBanners = onSnapshot(
+    collection(db, "banners"),
+    (snap) => {
+      banners = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (Number(a.urutan) || 0) - (Number(b.urutan) || 0));
+      renderBannerTable();
+    },
+    (err) => {
+      console.error(err);
+      showToast("Gagal memuat banner — cek koneksi internet");
     }
   );
 }
@@ -246,7 +267,7 @@ function openProductModal(id) {
   const p = id ? products.find(x => x.id === id) : null;
   document.getElementById("modalTitle").textContent = p ? "Edit Produk" : "Tambah Produk";
   document.getElementById("fNama").value = p?.nama || "";
-  document.getElementById("fKategori").value = p?.kategori || "";
+  populateKategoriSelect(p?.kategori || "");
   document.getElementById("fHarga").value = p?.harga || "";
   document.getElementById("fHargaCoret").value = p?.hargaCoret || "";
   document.getElementById("fStok").value = p?.stok ?? "";
@@ -350,32 +371,13 @@ function fillSettingsForm() {
   document.getElementById("sAlamat").value = settings.alamat;
   document.getElementById("sLinkShopee").value = settings.linkShopee || "";
   document.getElementById("sBannerAktif").checked = !!settings.bannerAktif;
-  document.getElementById("sBannerTeks").value = settings.bannerTeks || "";
-  document.getElementById("sBannerGambar").value = settings.bannerGambar || "";
-  document.getElementById("fBannerGambarFile").value = "";
-  updateBannerPreview();
-}
-
-/* ---------- preview foto banner promo ---------- */
-function updateBannerPreview() {
-  const url = document.getElementById("sBannerGambar").value.trim();
-  const box = document.getElementById("bannerPreviewBox");
-  if (!box) return;
-  box.classList.remove("loading");
-  box.innerHTML = url
-    ? `<img src="${url}" alt="preview banner" onerror="this.parentElement.innerHTML='<span>Gagal memuat gambar</span>'">`
-    : `<span>Belum ada foto banner</span>`;
-}
-function setBannerPreviewLoading() {
-  const box = document.getElementById("bannerPreviewBox");
-  if (!box) return;
-  box.classList.add("loading");
-  box.innerHTML = `<span>Mengompres foto...</span>`;
+  renderKategoriChips();
 }
 
 async function saveSettingsForm(e) {
   e.preventDefault();
   settings = {
+    ...settings,
     namaToko: document.getElementById("sNamaToko").value.trim() || DEFAULT_SETTINGS.namaToko,
     tagline: document.getElementById("sTagline").value.trim(),
     topbarText: document.getElementById("sTopbar").value.trim() || DEFAULT_SETTINGS.topbarText,
@@ -383,12 +385,9 @@ async function saveSettingsForm(e) {
     alamat: document.getElementById("sAlamat").value.trim(),
     linkShopee: document.getElementById("sLinkShopee").value.trim(),
     bannerAktif: document.getElementById("sBannerAktif").checked,
-    bannerTeks: document.getElementById("sBannerTeks").value.trim(),
-    bannerGambar: document.getElementById("sBannerGambar").value.trim(),
   };
-  if (settings.bannerAktif && !settings.bannerTeks && !settings.bannerGambar) {
-    showToast("Isi teks banner atau upload foto dulu sebelum diaktifkan");
-    return;
+  if (settings.bannerAktif && banners.length === 0) {
+    showToast("Aktif tapi belum ada banner — tambah dulu di menu Kelola Banner");
   }
   const btn = document.querySelector("#settingsForm button[type=submit]");
   if (btn) { btn.disabled = true; btn.textContent = "Menyimpan..."; }
@@ -401,6 +400,166 @@ async function saveSettingsForm(e) {
     showToast("Gagal menyimpan — cek koneksi internet");
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = "Simpan Pengaturan"; }
+  }
+}
+
+/* ---------- kelola kategori produk (terkelola, dropdown) ---------- */
+function renderKategoriChips() {
+  const wrap = document.getElementById("kategoriChipsList");
+  if (!wrap) return;
+  const list = settings.kategoriList || [];
+  wrap.innerHTML = list.length
+    ? list.map(k => `<span class="kategori-chip">${k}<button type="button" data-del-kategori="${k}">&times;</button></span>`).join("")
+    : `<span style="font-size:12px;color:var(--ink-soft,#3A2C52);">Belum ada kategori. Tambah dulu di atas.</span>`;
+  wrap.querySelectorAll("[data-del-kategori]").forEach(b => b.addEventListener("click", () => removeKategori(b.dataset.delKategori)));
+  populateKategoriSelect();
+}
+
+function populateKategoriSelect(selected) {
+  const sel = document.getElementById("fKategori");
+  if (!sel) return;
+  const list = [...(settings.kategoriList || [])];
+  const current = selected !== undefined ? selected : sel.value;
+  if (current && !list.includes(current)) list.push(current);
+  sel.innerHTML = list.length
+    ? list.map(k => `<option value="${k}">${k}</option>`).join("")
+    : `<option value="">Belum ada kategori — tambah di Pengaturan Toko</option>`;
+  if (current) sel.value = current;
+}
+
+async function addKategori() {
+  const input = document.getElementById("newKategoriInput");
+  const val = input.value.trim();
+  if (!val) return;
+  const list = settings.kategoriList || [];
+  if (list.some(k => k.toLowerCase() === val.toLowerCase())) {
+    showToast("Kategori itu sudah ada");
+    return;
+  }
+  settings.kategoriList = [...list, val];
+  input.value = "";
+  renderKategoriChips();
+  try {
+    await setDoc(doc(db, "settings", "store"), { kategoriList: settings.kategoriList }, { merge: true });
+    showToast("Kategori ditambahkan");
+  } catch (err) {
+    console.error(err);
+    showToast("Gagal menyimpan kategori — cek koneksi internet");
+  }
+}
+
+async function removeKategori(nama) {
+  if (!confirm(`Hapus kategori "${nama}"? Produk yang sudah pakai kategori ini tidak berubah otomatis.`)) return;
+  settings.kategoriList = (settings.kategoriList || []).filter(k => k !== nama);
+  renderKategoriChips();
+  try {
+    await setDoc(doc(db, "settings", "store"), { kategoriList: settings.kategoriList }, { merge: true });
+    showToast("Kategori dihapus");
+  } catch (err) {
+    console.error(err);
+    showToast("Gagal menghapus kategori — cek koneksi internet");
+  }
+}
+
+/* ---------- kelola banner (slider) ---------- */
+function renderBannerTable() {
+  const tbody = document.getElementById("bannerTableBody");
+  if (!tbody) return;
+  if (banners.length === 0) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="4">Belum ada banner. Klik "+ Tambah Banner" untuk mulai.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = banners.map(b => `
+    <tr>
+      <td><img class="banner-thumb" src="${b.gambar}" alt="banner"></td>
+      <td>${b.teks || "<span style='color:var(--ink-soft,#3A2C52);'>(tanpa teks)</span>"}</td>
+      <td>${b.urutan ?? 0}</td>
+      <td>
+        <div class="row-actions">
+          <button class="edit" data-edit-banner="${b.id}">Edit</button>
+          <button class="del" data-del-banner="${b.id}">Hapus</button>
+        </div>
+      </td>
+    </tr>
+  `).join("");
+  tbody.querySelectorAll("[data-edit-banner]").forEach(bt => bt.addEventListener("click", () => openBannerModal(bt.dataset.editBanner)));
+  tbody.querySelectorAll("[data-del-banner]").forEach(bt => bt.addEventListener("click", () => deleteBanner(bt.dataset.delBanner)));
+}
+
+function openBannerModal(id) {
+  editingBannerId = id || null;
+  const b = id ? banners.find(x => x.id === id) : null;
+  document.getElementById("bannerModalTitle").textContent = b ? "Edit Banner" : "Tambah Banner";
+  document.getElementById("bGambar").value = b?.gambar || "";
+  document.getElementById("bGambarFile").value = "";
+  document.getElementById("bTeks").value = b?.teks || "";
+  document.getElementById("bUrutan").value = b?.urutan ?? banners.length;
+  updateBannerFormPreview();
+  document.getElementById("bannerModal").classList.add("show");
+}
+function closeBannerModal() {
+  document.getElementById("bannerModal").classList.remove("show");
+  editingBannerId = null;
+}
+function updateBannerFormPreview() {
+  const url = document.getElementById("bGambar").value.trim();
+  const box = document.getElementById("bannerFormPreviewBox");
+  if (!box) return;
+  box.classList.remove("loading");
+  box.innerHTML = url
+    ? `<img src="${url}" alt="preview banner" onerror="this.parentElement.innerHTML='<span>Gagal memuat gambar</span>'">`
+    : `<span>Belum ada foto</span>`;
+}
+function setBannerFormPreviewLoading() {
+  const box = document.getElementById("bannerFormPreviewBox");
+  if (!box) return;
+  box.classList.add("loading");
+  box.innerHTML = `<span>Mengompres foto...</span>`;
+}
+
+async function saveBannerForm(e) {
+  e.preventDefault();
+  const gambar = document.getElementById("bGambar").value.trim();
+  const teks = document.getElementById("bTeks").value.trim();
+  const urutan = Number(document.getElementById("bUrutan").value || 0);
+
+  if (!gambar) {
+    showToast("Upload foto banner dulu ya");
+    return;
+  }
+  if (isNaN(urutan) || urutan < 0) {
+    showToast("Urutan tampil tidak valid");
+    return;
+  }
+
+  const saveBtn = document.querySelector("#bannerForm .save");
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = "Menyimpan..."; }
+
+  const data = { gambar, teks, urutan };
+  const id = editingBannerId || genId("B");
+
+  try {
+    await setDoc(doc(db, "banners", id), data);
+    showToast(editingBannerId ? "Banner berhasil diperbarui" : "Banner baru ditambahkan");
+    closeBannerModal();
+  } catch (err) {
+    console.error(err);
+    showToast("Gagal menyimpan banner — cek koneksi internet");
+  } finally {
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = "Simpan Banner"; }
+  }
+}
+
+async function deleteBanner(id) {
+  const b = banners.find(x => x.id === id);
+  if (!b) return;
+  if (!confirm("Hapus banner ini? Tindakan ini tidak bisa dibatalkan.")) return;
+  try {
+    await deleteDoc(doc(db, "banners", id));
+    showToast("Banner dihapus");
+  } catch (err) {
+    console.error(err);
+    showToast("Gagal menghapus banner — cek koneksi internet");
   }
 }
 
@@ -443,27 +602,31 @@ function bindShellUI() {
   });
   document.getElementById("settingsForm")?.addEventListener("submit", saveSettingsForm);
 
-  // upload foto banner promo (dikompres lebih lebar karena bentuknya landscape)
-  document.getElementById("fBannerGambarFile")?.addEventListener("change", async (e) => {
+  // kelola kategori
+  document.getElementById("btnAddKategori")?.addEventListener("click", addKategori);
+  document.getElementById("newKategoriInput")?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); addKategori(); }
+  });
+
+  // kelola banner (slider)
+  document.getElementById("btnAddBanner")?.addEventListener("click", () => openBannerModal(null));
+  document.getElementById("closeBannerModal")?.addEventListener("click", closeBannerModal);
+  document.getElementById("cancelBannerForm")?.addEventListener("click", closeBannerModal);
+  document.getElementById("bannerForm")?.addEventListener("submit", saveBannerForm);
+  document.getElementById("bGambarFile")?.addEventListener("change", async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    setBannerPreviewLoading();
+    setBannerFormPreviewLoading();
     try {
-      const dataUrl = await compressImage(file, 900, 0.75);
-      document.getElementById("sBannerGambar").value = dataUrl;
-      updateBannerPreview();
+      const dataUrl = await compressImage(file, 1000, 0.75);
+      document.getElementById("bGambar").value = dataUrl;
+      updateBannerFormPreview();
       const kb = Math.round((dataUrl.length * 0.75) / 1024);
-      document.getElementById("bannerUploadHint").textContent = `Foto banner siap dipakai (~${kb} KB setelah dikompres). Jangan lupa klik "Simpan Pengaturan".`;
+      document.getElementById("bannerFormUploadHint").textContent = `Foto siap dipakai (~${kb} KB setelah dikompres).`;
     } catch (err) {
       showToast(err.message || "Gagal memproses foto banner");
-      updateBannerPreview();
+      updateBannerFormPreview();
     }
-  });
-  document.getElementById("btnHapusBannerFoto")?.addEventListener("click", () => {
-    document.getElementById("sBannerGambar").value = "";
-    document.getElementById("fBannerGambarFile").value = "";
-    updateBannerPreview();
-    showToast("Foto banner dihapus dari form — klik Simpan Pengaturan untuk menerapkan");
   });
 
   document.getElementById("tableSearch")?.addEventListener("input", (e) => {

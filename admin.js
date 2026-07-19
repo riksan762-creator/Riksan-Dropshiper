@@ -26,6 +26,19 @@ const DEFAULT_SETTINGS = {
 };
 
 // Dipakai HANYA sekali untuk mengisi data awal (seed) saat Firestore masih kosong.
+// Dipakai HANYA sekali untuk mengisi data awal (seed) saat koleksi masih kosong.
+const SEED_ONGKIR = [
+  { kota: "Sumedang & sekitarnya", estimasi: "Rp10.000 – 15.000" },
+  { kota: "Bandung Raya", estimasi: "Rp13.000 – 18.000" },
+  { kota: "Jabodetabek", estimasi: "Rp16.000 – 24.000" },
+  { kota: "Jawa Barat lainnya", estimasi: "Rp15.000 – 22.000" },
+  { kota: "Jawa Tengah / DIY", estimasi: "Rp18.000 – 26.000" },
+  { kota: "Jawa Timur", estimasi: "Rp20.000 – 28.000" },
+  { kota: "Sumatra", estimasi: "Rp25.000 – 40.000" },
+  { kota: "Kalimantan / Sulawesi", estimasi: "Rp28.000 – 45.000" },
+  { kota: "Indonesia Timur lainnya", estimasi: "Rp35.000 – 55.000" },
+];
+
 const SEED_PRODUCTS = [
   { id: "P001", nama: "Kaos Oversize Katun 24s", kategori: "Fashion Pria", harga: 89000, hargaCoret: 120000, stok: 24, rating: 4.8, terjual: 156,
     gambar: "https://placehold.co/500x500/1B1030/FBF6EC?text=Kaos+Oversize", deskripsi: "Bahan katun combed 24s, adem, jahitan rapi." },
@@ -43,6 +56,16 @@ const SEED_PRODUCTS = [
 
 function rupiah(n) { return "Rp" + Number(n || 0).toLocaleString("id-ID"); }
 function genId(prefix = "P") { return prefix + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 5).toUpperCase(); }
+
+/* ---------- terjemahin error Firebase jadi pesan yang jelas ---------- */
+function firebaseErrorMessage(err) {
+  const code = err?.code || "";
+  if (code.includes("permission-denied")) return "Ditolak sistem (permission-denied) — Firestore Security Rules belum mengizinkan koleksi ini. Cek rules-nya di Firebase Console.";
+  if (code.includes("resource-exhausted") || code.includes("invalid-argument")) return "Data terlalu besar buat disimpan — coba upload foto dengan ukuran lebih kecil.";
+  if (code.includes("unavailable") || code.includes("deadline-exceeded")) return "Server Firestore lagi susah dihubungi — coba lagi beberapa saat.";
+  if (code.includes("unauthenticated")) return "Sesi login habis — coba logout lalu login lagi.";
+  return `Gagal menyimpan (${code || err?.message || "error tidak diketahui"})`;
+}
 
 /* ---------- kompres foto upload jadi base64 ringan ---------- */
 function compressImage(file, maxDim = 700, startQuality = 0.72) {
@@ -79,13 +102,18 @@ function compressImage(file, maxDim = 700, startQuality = 0.72) {
 /* ---------- state ---------- */
 let products = [];
 let banners = [];
+let ongkir = [];
+let orders = [];
 let settings = { ...DEFAULT_SETTINGS };
 let editingId = null;
 let editingBannerId = null;
+let editingOngkirId = null;
 let tableSearch = "";
 let tableKategori = "Semua";
 let unsubProducts = null;
 let unsubBanners = null;
+let unsubOngkir = null;
+let unsubOrders = null;
 let boundOnce = false;
 
 /* ---------- auth ---------- */
@@ -105,6 +133,8 @@ document.addEventListener("DOMContentLoaded", () => {
       shell.style.display = "none";
       if (unsubProducts) { unsubProducts(); unsubProducts = null; }
       if (unsubBanners) { unsubBanners(); unsubBanners = null; }
+      if (unsubOngkir) { unsubOngkir(); unsubOngkir = null; }
+      if (unsubOrders) { unsubOrders(); unsubOrders = null; }
     }
   });
 
@@ -129,8 +159,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function boot() {
     await seedIfEmpty();
+    await seedOngkirIfEmpty();
     listenProducts();
     listenBanners();
+    listenOngkir();
+    listenOrders();
     await loadSettings();
     if (!boundOnce) { bindShellUI(); boundOnce = true; }
   }
@@ -153,6 +186,21 @@ async function seedIfEmpty() {
   }
 }
 
+/* ---------- seed data ongkir awal (hanya jalan sekali saat koleksi masih kosong) ---------- */
+async function seedOngkirIfEmpty() {
+  try {
+    const snap = await getDocs(collection(db, "ongkir"));
+    if (!snap.empty) return;
+    const batch = writeBatch(db);
+    SEED_ONGKIR.forEach(o => {
+      batch.set(doc(db, "ongkir", genId("O")), o);
+    });
+    await batch.commit();
+  } catch (err) {
+    console.error("Gagal seed ongkir:", err);
+  }
+}
+
 /* ---------- realtime products ---------- */
 function listenProducts() {
   if (unsubProducts) unsubProducts();
@@ -163,6 +211,8 @@ function listenProducts() {
       renderStats();
       renderTable();
       renderKategoriFilter();
+      renderStokKritis();
+      renderTopProduk();
     },
     (err) => {
       console.error(err);
@@ -184,6 +234,40 @@ function listenBanners() {
     (err) => {
       console.error(err);
       showToast("Gagal memuat banner — cek koneksi internet");
+    }
+  );
+}
+
+/* ---------- realtime ongkir ---------- */
+function listenOngkir() {
+  if (unsubOngkir) unsubOngkir();
+  unsubOngkir = onSnapshot(
+    collection(db, "ongkir"),
+    (snap) => {
+      ongkir = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (a.kota || "").localeCompare(b.kota || ""));
+      renderOngkirTable();
+    },
+    (err) => {
+      console.error(err);
+      showToast("Gagal memuat data ongkir — cek koneksi internet");
+    }
+  );
+}
+
+/* ---------- realtime orders (riwayat pesanan) ---------- */
+function listenOrders() {
+  if (unsubOrders) unsubOrders();
+  unsubOrders = onSnapshot(
+    collection(db, "orders"),
+    (snap) => {
+      orders = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+      renderPesananTable();
+    },
+    (err) => {
+      console.error(err);
+      showToast("Gagal memuat riwayat pesanan — cek koneksi internet");
     }
   );
 }
@@ -215,6 +299,43 @@ function renderKategoriFilter() {
   const kategoris = ["Semua", ...new Set(products.map(p => p.kategori))];
   sel.innerHTML = kategoris.map(k => `<option value="${k}">${k}</option>`).join("");
   sel.value = kategoris.includes(current) ? current : "Semua";
+}
+
+/* ---------- dashboard: stok kritis & produk terlaris ---------- */
+function renderStokKritis() {
+  const box = document.getElementById("stokKritisList");
+  if (!box) return;
+  const kritis = products.filter(p => Number(p.stok) <= 5).sort((a, b) => Number(a.stok) - Number(b.stok));
+  if (kritis.length === 0) {
+    box.innerHTML = `<p style="font-size:13px;color:var(--ink-soft,#3A2C52);">Aman — semua produk stoknya masih cukup 👍</p>`;
+    return;
+  }
+  box.innerHTML = kritis.map(p => {
+    const habis = Number(p.stok) <= 0;
+    return `
+    <div class="stok-kritis-row">
+      <span>${p.nama}</span>
+      <span class="pill ${habis ? "habis" : "ready"}">${habis ? "Stok Habis" : `Sisa ${p.stok}`}</span>
+    </div>`;
+  }).join("");
+}
+
+function renderTopProduk() {
+  const box = document.getElementById("topProdukChart");
+  if (!box) return;
+  const top = [...products].sort((a, b) => (Number(b.terjual) || 0) - (Number(a.terjual) || 0)).slice(0, 5);
+  if (top.length === 0 || top.every(p => !p.terjual)) {
+    box.innerHTML = `<p style="font-size:13px;color:var(--ink-soft,#3A2C52);">Belum ada data penjualan (isi kolom "Jumlah Terjual" di produk).</p>`;
+    return;
+  }
+  const max = Math.max(1, ...top.map(p => Number(p.terjual) || 0));
+  box.innerHTML = top.map(p => `
+    <div class="bar-row">
+      <span class="bar-label" title="${p.nama}">${p.nama}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.round((Number(p.terjual) || 0) / max * 100)}%;"></div></div>
+      <span class="bar-value">${p.terjual || 0}</span>
+    </div>
+  `).join("");
 }
 
 function filteredList() {
@@ -341,7 +462,7 @@ async function saveProductForm(e) {
     closeProductModal();
   } catch (err) {
     console.error(err);
-    showToast("Gagal menyimpan — cek koneksi internet");
+    showToast(firebaseErrorMessage(err));
   } finally {
     if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = "Simpan Produk"; }
   }
@@ -356,7 +477,7 @@ async function deleteProduct(id) {
     showToast("Produk dihapus");
   } catch (err) {
     console.error(err);
-    showToast("Gagal menghapus — cek koneksi internet");
+    showToast(firebaseErrorMessage(err));
   }
 }
 
@@ -397,7 +518,7 @@ async function saveSettingsForm(e) {
     showToast("Pengaturan toko disimpan");
   } catch (err) {
     console.error(err);
-    showToast("Gagal menyimpan — cek koneksi internet");
+    showToast(firebaseErrorMessage(err));
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = "Simpan Pengaturan"; }
   }
@@ -444,7 +565,7 @@ async function addKategori() {
     showToast("Kategori ditambahkan");
   } catch (err) {
     console.error(err);
-    showToast("Gagal menyimpan kategori — cek koneksi internet");
+    showToast(firebaseErrorMessage(err));
   }
 }
 
@@ -457,7 +578,7 @@ async function removeKategori(nama) {
     showToast("Kategori dihapus");
   } catch (err) {
     console.error(err);
-    showToast("Gagal menghapus kategori — cek koneksi internet");
+    showToast(firebaseErrorMessage(err));
   }
 }
 
@@ -544,7 +665,7 @@ async function saveBannerForm(e) {
     closeBannerModal();
   } catch (err) {
     console.error(err);
-    showToast("Gagal menyimpan banner — cek koneksi internet");
+    showToast(firebaseErrorMessage(err));
   } finally {
     if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = "Simpan Banner"; }
   }
@@ -559,8 +680,135 @@ async function deleteBanner(id) {
     showToast("Banner dihapus");
   } catch (err) {
     console.error(err);
-    showToast("Gagal menghapus banner — cek koneksi internet");
+    showToast(firebaseErrorMessage(err));
   }
+}
+
+/* ---------- kelola ongkir ---------- */
+function renderOngkirTable() {
+  const tbody = document.getElementById("ongkirTableBody");
+  if (!tbody) return;
+  if (ongkir.length === 0) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="3">Belum ada data ongkir. Klik "+ Tambah Wilayah" untuk mulai.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = ongkir.map(o => `
+    <tr>
+      <td>${o.kota}</td>
+      <td>${o.estimasi}</td>
+      <td>
+        <div class="row-actions">
+          <button class="edit" data-edit-ongkir="${o.id}">Edit</button>
+          <button class="del" data-del-ongkir="${o.id}">Hapus</button>
+        </div>
+      </td>
+    </tr>
+  `).join("");
+  tbody.querySelectorAll("[data-edit-ongkir]").forEach(bt => bt.addEventListener("click", () => openOngkirModal(bt.dataset.editOngkir)));
+  tbody.querySelectorAll("[data-del-ongkir]").forEach(bt => bt.addEventListener("click", () => deleteOngkir(bt.dataset.delOngkir)));
+}
+
+function openOngkirModal(id) {
+  editingOngkirId = id || null;
+  const o = id ? ongkir.find(x => x.id === id) : null;
+  document.getElementById("ongkirModalTitle").textContent = o ? "Edit Wilayah" : "Tambah Wilayah";
+  document.getElementById("oKota").value = o?.kota || "";
+  document.getElementById("oEstimasi").value = o?.estimasi || "";
+  document.getElementById("ongkirModal").classList.add("show");
+}
+function closeOngkirModal() {
+  document.getElementById("ongkirModal").classList.remove("show");
+  editingOngkirId = null;
+}
+
+async function saveOngkirForm(e) {
+  e.preventDefault();
+  const kota = document.getElementById("oKota").value.trim();
+  const estimasi = document.getElementById("oEstimasi").value.trim();
+  if (!kota || !estimasi) {
+    showToast("Isi nama wilayah dan estimasi ongkirnya dulu ya");
+    return;
+  }
+  const dup = ongkir.some(o => o.kota.toLowerCase() === kota.toLowerCase() && o.id !== editingOngkirId);
+  if (dup) {
+    showToast("Wilayah itu sudah ada di daftar");
+    return;
+  }
+
+  const saveBtn = document.querySelector("#ongkirForm .save");
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = "Menyimpan..."; }
+
+  const id = editingOngkirId || genId("O");
+  try {
+    await setDoc(doc(db, "ongkir", id), { kota, estimasi });
+    showToast(editingOngkirId ? "Wilayah berhasil diperbarui" : "Wilayah baru ditambahkan");
+    closeOngkirModal();
+  } catch (err) {
+    console.error(err);
+    showToast(firebaseErrorMessage(err));
+  } finally {
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = "Simpan Wilayah"; }
+  }
+}
+
+async function deleteOngkir(id) {
+  if (!confirm("Hapus wilayah ongkir ini?")) return;
+  try {
+    await deleteDoc(doc(db, "ongkir", id));
+    showToast("Wilayah dihapus");
+  } catch (err) {
+    console.error(err);
+    showToast(firebaseErrorMessage(err));
+  }
+}
+
+/* ---------- riwayat pesanan ---------- */
+function renderPesananTable() {
+  const tbody = document.getElementById("pesananTableBody");
+  if (!tbody) return;
+  if (orders.length === 0) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="6">Belum ada pesanan masuk. Otomatis tercatat begitu ada customer checkout.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = orders.map(o => {
+    const tgl = o.createdAt ? new Date(o.createdAt).toLocaleString("id-ID", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "-";
+    const jumlahItem = (o.items || []).reduce((a, it) => a + Number(it.qty || 0), 0);
+    return `
+    <tr>
+      <td>${tgl}</td>
+      <td>${o.buyer?.name || "<span style='color:var(--ink-soft,#3A2C52);'>(tanpa nama)</span>"}</td>
+      <td>${jumlahItem} item</td>
+      <td>${rupiah(o.total)}</td>
+      <td>${o.voucher ? `🎁 ${o.voucher.code}` : "-"}</td>
+      <td><button class="edit" data-detail-pesanan="${o.id}">Detail</button></td>
+    </tr>`;
+  }).join("");
+  tbody.querySelectorAll("[data-detail-pesanan]").forEach(bt => bt.addEventListener("click", () => openPesananDetail(bt.dataset.detailPesanan)));
+}
+
+function openPesananDetail(id) {
+  const o = orders.find(x => x.id === id);
+  if (!o) return;
+  const box = document.getElementById("pesananDetailBody");
+  const tgl = o.createdAt ? new Date(o.createdAt).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" }) : "-";
+  const itemsHtml = (o.items || []).map(it => `
+    <div class="pesanan-detail-item">
+      <span>${it.nama} x${it.qty}</span>
+      <span>${rupiah(it.subtotal)}</span>
+    </div>
+  `).join("");
+  box.innerHTML = `
+    <p style="color:var(--ink-soft,#3A2C52);margin:0 0 12px;">${tgl}</p>
+    <p><b>Nama:</b> ${o.buyer?.name || "-"}</p>
+    <p><b>Kota:</b> ${o.buyer?.city || "-"}</p>
+    <p><b>Alamat:</b> ${o.buyer?.address || "-"}</p>
+    ${o.voucher ? `<p><b>Voucher:</b> 🎁 ${o.voucher.code} (${o.voucher.label})</p>` : ""}
+    <div style="margin-top:14px;border-top:1px dashed var(--line,#D8CBB0);padding-top:10px;">
+      ${itemsHtml}
+      <div class="pesanan-detail-total"><span>Total</span><span>${rupiah(o.total)}</span></div>
+    </div>
+  `;
+  document.getElementById("pesananModal").classList.add("show");
 }
 
 /* ---------- toast ---------- */
@@ -627,6 +875,17 @@ function bindShellUI() {
       showToast(err.message || "Gagal memproses foto banner");
       updateBannerFormPreview();
     }
+  });
+
+  // kelola ongkir
+  document.getElementById("btnAddOngkir")?.addEventListener("click", () => openOngkirModal(null));
+  document.getElementById("closeOngkirModal")?.addEventListener("click", closeOngkirModal);
+  document.getElementById("cancelOngkirForm")?.addEventListener("click", closeOngkirModal);
+  document.getElementById("ongkirForm")?.addEventListener("submit", saveOngkirForm);
+
+  // riwayat pesanan
+  document.getElementById("closePesananModal")?.addEventListener("click", () => {
+    document.getElementById("pesananModal").classList.remove("show");
   });
 
   document.getElementById("tableSearch")?.addEventListener("input", (e) => {

@@ -7,13 +7,14 @@
    ========================================================= */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, doc, onSnapshot, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js";
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const LS_CART = "riksan_cart";
+const LS_BUYER = "riksan_buyer_info";
 const SPIN_KEY = "riksan_spin_result";
 
 /* Hadiah roda putar — weight menentukan peluang (semakin besar makin sering keluar) */
@@ -44,10 +45,18 @@ function getCart() {
 function saveCart(cart) { sessionStorage.setItem(LS_CART, JSON.stringify(cart)); }
 function rupiah(n) { return "Rp" + Number(n).toLocaleString("id-ID"); }
 
+function getBuyerInfo() {
+  try { return JSON.parse(localStorage.getItem(LS_BUYER)) || {}; } catch { return {}; }
+}
+function saveBuyerInfo(info) {
+  localStorage.setItem(LS_BUYER, JSON.stringify(info));
+}
+
 let products = [];
 let banners = [];
 let bannerSlideIndex = 0;
 let bannerTimer = null;
+let ongkirData = {};
 let settings = { ...DEFAULT_SETTINGS };
 let activeKategori = "Semua";
 let searchTerm = "";
@@ -58,7 +67,9 @@ document.addEventListener("DOMContentLoaded", () => {
   listenProducts();
   listenBanners();
   listenSettings();
+  listenOngkir();
   bindSpinWheel();
+  bindBuyerForm();
 });
 
 /* ---------- realtime listeners ---------- */
@@ -371,6 +382,74 @@ function closeCart() {
   document.getElementById("overlayBg").classList.remove("show");
 }
 
+/* ---------- form pembeli: nama, kota, alamat + estimasi ongkir ---------- */
+function listenOngkir() {
+  onSnapshot(
+    collection(db, "ongkir"),
+    (snap) => {
+      ongkirData = {};
+      snap.docs.forEach(d => {
+        const data = d.data();
+        if (data.kota) ongkirData[data.kota] = data.estimasi;
+      });
+      populateCityOptions();
+      prefillBuyerForm();
+    },
+    (err) => console.error(err)
+  );
+}
+
+function populateCityOptions() {
+  const sel = document.getElementById("buyerCity");
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = `<option value="">Pilih kota/wilayah...</option>` +
+    Object.keys(ongkirData).map(k => `<option value="${k}">${k}</option>`).join("");
+  if (current && ongkirData[current]) sel.value = current;
+}
+
+function prefillBuyerForm() {
+  const info = getBuyerInfo();
+  const nameEl = document.getElementById("buyerName");
+  const citySel = document.getElementById("buyerCity");
+  const addrEl = document.getElementById("buyerAddress");
+  if (nameEl) nameEl.value = info.name || "";
+  if (citySel) citySel.value = info.city || "";
+  if (addrEl) addrEl.value = info.address || "";
+  updateOngkirEstimate();
+}
+
+function updateOngkirEstimate() {
+  const city = document.getElementById("buyerCity")?.value;
+  const box = document.getElementById("ongkirEstimate");
+  if (!box) return;
+  if (city && ongkirData[city]) {
+    box.style.display = "flex";
+    box.textContent = `🚚 Estimasi ongkir ke ${city}: ${ongkirData[city]} (perkiraan, dikonfirmasi admin)`;
+  } else {
+    box.style.display = "none";
+  }
+}
+
+function persistBuyerForm() {
+  saveBuyerInfo({
+    name: document.getElementById("buyerName")?.value.trim() || "",
+    city: document.getElementById("buyerCity")?.value || "",
+    address: document.getElementById("buyerAddress")?.value.trim() || "",
+  });
+}
+
+function bindBuyerForm() {
+  populateCityOptions();
+  prefillBuyerForm();
+  document.getElementById("buyerName")?.addEventListener("input", persistBuyerForm);
+  document.getElementById("buyerAddress")?.addEventListener("input", persistBuyerForm);
+  document.getElementById("buyerCity")?.addEventListener("change", () => {
+    persistBuyerForm();
+    updateOngkirEstimate();
+  });
+}
+
 /* ---------- checkout ---------- */
 function checkoutWA() {
   const cart = getCart();
@@ -389,17 +468,45 @@ function checkoutWA() {
     ? `\nKode Voucher: ${spin.code} (${spin.full}) — mohon dicek & diterapkan ya 🙏\n`
     : "";
 
+  const buyer = getBuyerInfo();
+  const buyerLines = [];
+  if (buyer.name) buyerLines.push(`Nama: ${buyer.name}`);
+  if (buyer.city) buyerLines.push(`Kota/Wilayah: ${buyer.city}${ongkirData[buyer.city] ? ` (estimasi ongkir ${ongkirData[buyer.city]})` : ""}`);
+  if (buyer.address) buyerLines.push(`Alamat: ${buyer.address}`);
+  const buyerBlock = buyerLines.length ? `\n${buyerLines.join("\n")}\n` : "";
+
   const pesan =
 `Halo ${settings.namaToko}, saya mau pesan:
 
 ${lines}
 ${voucherLine}
 Total: ${rupiah(total)}
-
+${buyerBlock}
 Mohon info ongkir & cara pembayarannya ya. Terima kasih 🙏`;
 
   const url = `https://wa.me/${settings.noWA}?text=${encodeURIComponent(pesan)}`;
+  logOrder(cart, total, buyer, spin);
   window.open(url, "_blank");
+}
+
+/* ---------- catat riwayat pesanan ke Firestore (buat admin) ---------- */
+function logOrder(cart, total, buyer, spin) {
+  try {
+    const items = cart.map(c => {
+      const p = products.find(x => x.id === c.id);
+      return p ? { nama: p.nama, qty: c.qty, harga: p.harga, subtotal: p.harga * c.qty } : null;
+    }).filter(Boolean);
+
+    addDoc(collection(db, "orders"), {
+      items,
+      total,
+      buyer: { name: buyer.name || "", city: buyer.city || "", address: buyer.address || "" },
+      voucher: (spin && spin.type !== "none") ? { code: spin.code, label: spin.full } : null,
+      createdAt: new Date().toISOString(),
+    }).catch(err => console.error("Gagal mencatat riwayat pesanan:", err));
+  } catch (err) {
+    console.error("Gagal mencatat riwayat pesanan:", err);
+  }
 }
 
 function checkoutShopee() {

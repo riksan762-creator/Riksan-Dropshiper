@@ -118,6 +118,21 @@
     <button id="closeCartBtn" aria-label="Tutup">&times;</button>
   </div>
   <div class="drawer-items" id="cartItems"></div>
+  <div class="checkout-form">
+    <div class="cf-field">
+      <label for="buyerName">Nama Penerima</label>
+      <input type="text" id="buyerName" placeholder="Nama lengkap kamu">
+    </div>
+    <div class="cf-field">
+      <label for="buyerCity">Kota / Wilayah</label>
+      <select id="buyerCity"></select>
+    </div>
+    <div class="cf-field">
+      <label for="buyerAddress">Alamat Lengkap</label>
+      <textarea id="buyerAddress" rows="2" placeholder="Jalan, no rumah, RT/RW, kecamatan..."></textarea>
+    </div>
+    <div class="ongkir-estimate" id="ongkirEstimate" style="display:none;"></div>
+  </div>
   <div class="drawer-foot">
     <div class="row total"><span>Total</span><span id="cartTotal">Rp0</span></div>
     <button class="wa-checkout" id="waCheckoutBtn">

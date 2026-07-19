@@ -14,6 +14,15 @@
   .kategori-chip{display:inline-flex;align-items:center;gap:6px;background:#F1E9D8;border:1px solid #D8CBB0;border-radius:999px;padding:5px 6px 5px 12px;font-size:12.5px;}
   .kategori-chip button{background:#1B1030;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:12px;line-height:1;cursor:pointer;}
   .banner-thumb{width:70px;height:40px;object-fit:cover;border-radius:6px;border:1px solid #D8CBB0;display:block;}
+  .stok-kritis-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px dashed #D8CBB0;font-size:13.5px;}
+  .stok-kritis-row:last-child{border-bottom:none;}
+  .bar-row{display:grid;grid-template-columns:120px 1fr 34px;align-items:center;gap:10px;padding:7px 0;font-size:12.5px;}
+  .bar-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .bar-track{background:#F1E9D8;border-radius:999px;height:10px;overflow:hidden;}
+  .bar-fill{background:linear-gradient(90deg,#E63E7F,#D4AF37);height:100%;border-radius:999px;}
+  .bar-value{text-align:right;font-family:monospace;color:#3A2C52;}
+  .pesanan-detail-item{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #D8CBB0;font-size:13px;}
+  .pesanan-detail-total{display:flex;justify-content:space-between;padding:10px 0 0;font-weight:700;font-size:14px;}
 </style>
 </head>
 <body>
@@ -51,6 +60,8 @@
       <button class="nav-item active" data-view="viewDashboard">📊 Dashboard</button>
       <button class="nav-item" data-view="viewProduk">📦 Kelola Produk</button>
       <button class="nav-item" data-view="viewBanner">🖼️ Kelola Banner</button>
+      <button class="nav-item" data-view="viewOngkir">🚚 Kelola Ongkir</button>
+      <button class="nav-item" data-view="viewPesanan">🧾 Riwayat Pesanan</button>
       <button class="nav-item" data-view="viewPengaturan">⚙️ Pengaturan Toko</button>
     </nav>
     <div class="foot">
@@ -88,6 +99,14 @@
             (<b>index.html</b>). Pelanggan checkout lewat WhatsApp — pesan otomatis berisi daftar barang & total belanja
             akan terkirim ke nomor admin yang diatur di menu <b>Pengaturan Toko</b>.
           </p>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>⚠️ Stok Menipis</h3></div>
+          <div id="stokKritisList"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>🏆 Produk Terlaris</h3></div>
+          <div id="topProdukChart"></div>
         </div>
       </section>
 
@@ -132,6 +151,41 @@
                 <tr><th>Preview</th><th>Teks</th><th>Urutan</th><th>Aksi</th></tr>
               </thead>
               <tbody id="bannerTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- KELOLA ONGKIR -->
+      <section class="view-panel" id="viewOngkir">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Estimasi Ongkir per Kota/Wilayah</h3>
+            <button class="btn-add" id="btnAddOngkir">+ Tambah Wilayah</button>
+          </div>
+          <p style="font-size:13px;color:var(--ink-soft,#3A2C52);margin:-6px 0 16px;line-height:1.6;">
+            Ini yang muncul sebagai pilihan kota & estimasi ongkir di form checkout toko. Angkanya cuma perkiraan — harga pasti tetap dikonfirmasi admin lewat WhatsApp.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Kota/Wilayah</th><th>Estimasi Ongkir</th><th>Aksi</th></tr></thead>
+              <tbody id="ongkirTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIWAYAT PESANAN -->
+      <section class="view-panel" id="viewPesanan">
+        <div class="panel">
+          <div class="panel-head"><h3>Riwayat Pesanan Masuk</h3></div>
+          <p style="font-size:13px;color:var(--ink-soft,#3A2C52);margin:-6px 0 16px;line-height:1.6;">
+            Tercatat otomatis tiap kali customer klik "Checkout via WhatsApp" di toko — nggak perlu scroll-scroll chat lama lagi.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Tanggal</th><th>Nama</th><th>Item</th><th>Total</th><th>Voucher</th><th>Aksi</th></tr></thead>
+              <tbody id="pesananTableBody"></tbody>
             </table>
           </div>
         </div>
@@ -281,6 +335,39 @@
         <button type="submit" class="save">Simpan Banner</button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- MODAL: TAMBAH/EDIT ONGKIR -->
+<div class="modal-overlay" id="ongkirModal">
+  <div class="modal-box">
+    <button class="modal-close" id="closeOngkirModal">&times;</button>
+    <h3 id="ongkirModalTitle">Tambah Wilayah</h3>
+    <form id="ongkirForm">
+      <div class="form-grid">
+        <div class="field full">
+          <label for="oKota">Nama Kota/Wilayah *</label>
+          <input type="text" id="oKota" placeholder="Contoh: Bandung Raya" required>
+        </div>
+        <div class="field full">
+          <label for="oEstimasi">Estimasi Ongkir *</label>
+          <input type="text" id="oEstimasi" placeholder="Contoh: Rp13.000 – 18.000" required>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="cancel" id="cancelOngkirForm">Batal</button>
+        <button type="submit" class="save">Simpan Wilayah</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: DETAIL PESANAN -->
+<div class="modal-overlay" id="pesananModal">
+  <div class="modal-box">
+    <button class="modal-close" id="closePesananModal">&times;</button>
+    <h3>Detail Pesanan</h3>
+    <div id="pesananDetailBody" style="font-size:13.5px;"></div>
   </div>
 </div>
 

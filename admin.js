@@ -22,6 +22,10 @@ const DEFAULT_SETTINGS = {
   topbarText: "📦 Kirim ke seluruh Indonesia — dari supplier langsung ke pembeli",
   linkShopee: "",
   bannerAktif: false,
+  aiAktif: false,
+  groqApiKey: "",
+  aiModel: "openai/gpt-oss-20b",
+  aiPersona: "",
   kategoriList: ["Fashion Pria", "Tas & Aksesoris", "Kecantikan", "Sepatu", "Aksesoris HP", "Peralatan Harian"],
 };
 
@@ -492,6 +496,10 @@ function fillSettingsForm() {
   document.getElementById("sAlamat").value = settings.alamat;
   document.getElementById("sLinkShopee").value = settings.linkShopee || "";
   document.getElementById("sBannerAktif").checked = !!settings.bannerAktif;
+  document.getElementById("sAiAktif").checked = !!settings.aiAktif;
+  document.getElementById("sGroqKey").value = settings.groqApiKey || "";
+  document.getElementById("sAiModel").value = settings.aiModel || "openai/gpt-oss-20b";
+  document.getElementById("sAiPersona").value = settings.aiPersona || "";
   renderKategoriChips();
 }
 
@@ -506,7 +514,14 @@ async function saveSettingsForm(e) {
     alamat: document.getElementById("sAlamat").value.trim(),
     linkShopee: document.getElementById("sLinkShopee").value.trim(),
     bannerAktif: document.getElementById("sBannerAktif").checked,
+    aiAktif: document.getElementById("sAiAktif").checked,
+    groqApiKey: document.getElementById("sGroqKey").value.trim(),
+    aiModel: document.getElementById("sAiModel").value.trim() || "openai/gpt-oss-20b",
+    aiPersona: document.getElementById("sAiPersona").value.trim(),
   };
+  if (settings.aiAktif && !settings.groqApiKey) {
+    showToast("Isi dulu Groq API Key sebelum mengaktifkan Chat AI");
+  }
   if (settings.bannerAktif && banners.length === 0) {
     showToast("Aktif tapi belum ada banner — tambah dulu di menu Kelola Banner");
   }

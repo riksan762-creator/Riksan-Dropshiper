@@ -180,6 +180,27 @@
   </div>
 </div>
 
+<!-- AI Chat: FAB -->
+<button class="ai-fab" id="aiChatFabBtn" aria-label="Tanya AI" style="display:none;">
+  <span class="ai-fab-icon">🤖</span>
+  <span class="ai-fab-text">Tanya AI<br><small>Nanya produk gampang</small></span>
+</button>
+
+<!-- AI Chat: Modal -->
+<div class="ai-chat-overlay" id="aiChatOverlay">
+  <div class="ai-chat-modal">
+    <div class="ai-chat-head">
+      <span>🤖 Tanya-Tanya AI</span>
+      <button class="modal-close" id="closeAiChatModal">&times;</button>
+    </div>
+    <div class="ai-chat-messages" id="aiChatMessages"></div>
+    <div class="ai-chat-input-row">
+      <input type="text" id="aiChatInput" placeholder="Ketik pertanyaan kamu...">
+      <button id="aiChatSendBtn" aria-label="Kirim">➤</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 

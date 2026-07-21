@@ -548,4 +548,226 @@ footer.site .f-links a{text-decoration:none;border-bottom:1px dashed var(--ink-s
 
 .wa-float{
   position:fixed;bottom:22px;right:22px;z-index:80;
-  background:#25D366;color:#fff;border:none;bo
+  background:linear-gradient(135deg,#25D366 0%,#1DA851 100%);color:#fff;border:none;border-radius:999px;
+  padding:12px 20px 12px 12px;display:flex;align-items:center;gap:10px;
+  font-weight:700;box-shadow:0 8px 24px -8px rgba(37,211,102,.6), var(--shadow);font-family:var(--font-body);
+  animation:waPulse 2.6s infinite;
+}
+@keyframes waPulse{
+  0%,100%{box-shadow:0 8px 24px -8px rgba(37,211,102,.6), var(--shadow);}
+  50%{box-shadow:0 8px 28px -6px rgba(37,211,102,.85), var(--shadow);}
+}
+.wa-float .icon-wa{
+  background:rgba(255,255,255,.2);border-radius:50%;
+  width:34px;height:34px;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.wa-float small{
+  display:block;font-family:var(--font-mono);font-weight:400;font-size:10px;opacity:.9;
+}
+.icon-wa, .icon-shopee{flex-shrink:0;}
+.wa-checkout, .shopee-checkout, .btn-shopee{gap:10px;}
+
+/* ---- AI Chat: floating button (bertumpuk di atas tombol WA) ---- */
+.ai-fab{
+  position:fixed;bottom:96px;right:22px;z-index:81;
+  background:linear-gradient(135deg, var(--ink) 0%, var(--ink-soft) 100%);
+  color:#fff;border:none;border-radius:999px;
+  padding:12px 18px;display:flex;align-items:center;gap:10px;
+  font-weight:700;box-shadow:var(--shadow);font-family:var(--font-body);
+  border:1px solid rgba(212,175,55,.4);
+}
+.ai-fab-icon{font-size:20px;}
+.ai-fab-text{text-align:left;line-height:1.2;font-size:13px;}
+.ai-fab-text small{
+  display:block;font-family:var(--font-mono);font-weight:400;font-size:9.5px;opacity:.85;
+}
+
+/* ---- AI Chat: modal ---- */
+.ai-chat-overlay{
+  position:fixed;inset:0;background:rgba(27,16,48,.65);
+  display:none;align-items:center;justify-content:center;z-index:100;padding:16px;
+}
+.ai-chat-overlay.show{display:flex;}
+.ai-chat-modal{
+  background:var(--paper);border-radius:var(--radius);max-width:420px;width:100%;
+  height:min(560px,80vh);
+  display:flex;flex-direction:column;overflow:hidden;
+  border:2px solid var(--ink);
+  box-shadow:var(--shadow-lg), var(--glow-gold);
+}
+.ai-chat-head{
+  background:var(--ink);color:#fff;padding:14px 18px;
+  display:flex;justify-content:space-between;align-items:center;
+  font-family:var(--font-display);font-size:14px;text-transform:uppercase;
+}
+.ai-chat-head .modal-close{position:static;background:rgba(255,255,255,.15);}
+.ai-chat-messages{
+  flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;
+}
+.ai-msg{
+  max-width:82%;padding:9px 14px;border-radius:14px;font-size:13.5px;line-height:1.5;
+}
+.ai-msg-bot{
+  align-self:flex-start;background:#fff;border:1px solid var(--line);
+  border-bottom-left-radius:4px;color:var(--ink);
+}
+.ai-msg-user{
+  align-self:flex-end;background:linear-gradient(135deg, var(--magenta), var(--magenta-deep));
+  color:#fff;border-bottom-right-radius:4px;
+}
+.ai-msg-loading{
+  align-self:flex-start;background:#fff;border:1px solid var(--line);
+  border-bottom-left-radius:4px;color:var(--ink-soft);font-style:italic;
+}
+.ai-chat-input-row{
+  display:flex;gap:8px;padding:12px;border-top:1px solid var(--line);background:#fff;
+}
+.ai-chat-input-row input{
+  flex:1;border:1.5px solid var(--line);border-radius:999px;
+  padding:9px 16px;font-family:var(--font-body);font-size:14px;
+  outline:none;
+}
+.ai-chat-input-row input:focus{border-color:var(--magenta);}
+.ai-chat-input-row button{
+  background:var(--ink);color:#fff;border:none;border-radius:50%;
+  width:38px;height:38px;flex-shrink:0;font-size:15px;
+}
+.ai-chat-input-row button:disabled{opacity:.5;}
+
+@media (max-width:420px){
+  .ai-fab-text{display:none;}
+  .ai-fab{padding:14px;border-radius:50%;bottom:78px;right:18px;}
+}
+
+/* ---- Spin wheel: floating button ---- */
+.spin-fab{
+  position:fixed;bottom:22px;left:22px;z-index:80;
+  background:linear-gradient(135deg, var(--gold) 0%, var(--magenta) 100%);
+  color:#fff;border:none;border-radius:999px;
+  padding:12px 18px;display:flex;align-items:center;gap:10px;
+  font-weight:700;box-shadow:var(--shadow);font-family:var(--font-body);
+  animation:spinFabPulse 2.4s infinite;
+}
+.spin-fab-icon{font-size:22px;}
+.spin-fab-text{text-align:left;line-height:1.2;}
+.spin-fab-text small{
+  display:block;font-family:var(--font-mono);font-weight:400;font-size:10px;opacity:.9;
+}
+@keyframes spinFabPulse{
+  0%,100%{box-shadow:var(--shadow);}
+  50%{box-shadow:0 0 0 8px rgba(212,175,55,.25), var(--shadow);}
+}
+
+/* ---- Spin wheel: modal ---- */
+.spin-overlay{
+  position:fixed;inset:0;background:rgba(27,16,48,.65);
+  display:none;align-items:center;justify-content:center;z-index:99;padding:20px;
+}
+.spin-overlay.show{display:flex;}
+.spin-modal{
+  background:var(--paper);border-radius:var(--radius);max-width:380px;width:100%;
+  padding:26px 22px 24px;position:relative;text-align:center;
+  border:2px solid var(--ink);
+  box-shadow:var(--shadow-lg), var(--glow-gold);
+  max-height:92vh;overflow-y:auto;
+}
+.spin-modal h3{
+  font-family:var(--font-display);font-size:19px;margin:4px 0 8px;text-transform:uppercase;
+}
+.spin-sub{font-size:13px;color:var(--ink-soft);margin:0 0 6px;line-height:1.5;}
+
+.wheel-wrap{position:relative;width:250px;height:250px;margin:14px auto 18px;}
+.wheel-pointer{
+  position:absolute;top:-16px;left:50%;transform:translateX(-50%);
+  font-size:26px;color:var(--magenta-deep);z-index:5;
+  filter:drop-shadow(0 2px 2px rgba(0,0,0,.35));
+}
+.wheel{
+  width:100%;height:100%;border-radius:50%;
+  border:6px solid var(--ink);
+  position:relative;
+  box-shadow:0 0 0 3px var(--gold), var(--shadow-lg);
+  transform:rotate(0deg);
+}
+.wheel-label{
+  position:absolute;top:50%;left:50%;
+  transform-origin:0 0;
+  font-family:var(--font-mono);font-weight:700;font-size:11px;color:#fff;
+  text-shadow:0 1px 2px rgba(0,0,0,.5);
+  white-space:nowrap;
+  pointer-events:none;
+}
+.spin-btn{margin-top:4px;}
+.spin-btn:disabled{opacity:.5;cursor:not-allowed;}
+
+.spin-result{margin-top:18px;border-top:2px dashed var(--line);padding-top:16px;}
+.spin-result-title{
+  font-family:var(--font-display);font-size:16px;text-transform:uppercase;
+  color:var(--magenta-deep);margin:0 0 12px;line-height:1.4;
+}
+.voucher-box{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:#fff;border:2px dashed var(--gold);border-radius:10px;
+  padding:10px 14px;margin-bottom:14px;
+}
+.voucher-box span{
+  font-family:var(--font-mono);font-weight:700;font-size:16px;letter-spacing:.05em;color:var(--ink);
+}
+.voucher-box button{
+  background:var(--ink);color:#fff;border:none;border-radius:999px;
+  padding:6px 14px;font-size:12px;font-weight:600;
+}
+
+@media (max-width:420px){
+  .wheel-wrap{width:220px;height:220px;}
+  .spin-fab-text{display:none;}
+  .spin-fab{padding:14px;border-radius:50%;}
+  .wa-float span{display:none;}
+  .wa-float{padding:14px;border-radius:50%;bottom:18px;right:18px;}
+  .spin-fab{bottom:18px;left:18px;}
+}
+
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:var(--paper);padding:12px 22px;border-radius:999px;
+  font-size:13.5px;opacity:0;pointer-events:none;transition:all .25s ease;z-index:110;
+  font-family:var(--font-mono);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ===== Tablet & di bawahnya ===== */
+@media (max-width:860px){
+  .hero .container{grid-template-columns:1fr;gap:32px;}
+  .hero-receipt{transform:none;max-width:420px;}
+  .stats .container{grid-template-columns:repeat(2,1fr);}
+  .trust .container{grid-template-columns:1fr;gap:20px;}
+  .modal{grid-template-columns:1fr;}
+  .modal .m-img{max-height:220px;}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:16px;}
+}
+
+/* ===== HP: grid produk dipaksa 2 kolom, kartu lebih ringkas ===== */
+@media (max-width:520px){
+  .grid{grid-template-columns:repeat(2,1fr);gap:12px;}
+  .card h4{font-size:13.5px;min-height:2.4em;}
+  .card .price{font-size:14px;}
+  .card .body{padding:11px 12px 13px;}
+  .card .actions{flex-direction:column;gap:6px;}
+}
+
+/* ===== Mobile: nav wrap, search jadi baris sendiri (bukan hilang) ===== */
+@media (max-width:640px){
+  .nav{flex-wrap:wrap;row-gap:10px;}
+  .nav-actions{flex:0 0 100%;justify-content:space-between;}
+  .search-box{order:3;flex:1;min-width:0;}
+  .search-box input{width:100%;}
+  .cart-btn{flex-shrink:0;}
+  .section{padding:clamp(36px,8vw,56px) 0;}
+  .hero{padding:clamp(40px,10vw,64px) 0 clamp(56px,12vw,96px);}
+  footer.site .container{flex-direction:column;gap:20px;}
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important;transition:none !important;}
+}

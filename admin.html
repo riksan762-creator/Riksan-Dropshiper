@@ -217,6 +217,25 @@
             </div>
             <p class="upload-hint" style="margin:-6px 0 4px;">Isi banner (foto + teks + urutan) dikelola di menu <b>🖼️ Kelola Banner</b>, bukan di sini.</p>
 
+            <div class="field" style="display:flex;align-items:center;gap:10px;flex-direction:row;">
+              <input type="checkbox" id="sAiAktif" style="width:18px;height:18px;">
+              <label for="sAiAktif" style="margin:0;">Aktifkan Chat AI buat Customer</label>
+            </div>
+            <div class="field">
+              <label for="sGroqKey">Groq API Key</label>
+              <input type="password" id="sGroqKey" placeholder="gsk_xxxxxxxxxxxxxxxx" autocomplete="off">
+              <p class="upload-hint">Bikin gratis di <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a>. <b>Penting:</b> key ini dipanggil langsung dari browser customer, jadi bisa keliatan orang yang buka DevTools. Cek usage/rate limit rutin, dan ganti key kalau curiga disalahgunakan.</p>
+            </div>
+            <div class="field">
+              <label for="sAiModel">Model AI</label>
+              <input type="text" id="sAiModel" placeholder="openai/gpt-oss-20b">
+              <p class="upload-hint">Default: <code>openai/gpt-oss-20b</code> (cepat & gratis). Model lain bisa dicek di console.groq.com/docs/models.</p>
+            </div>
+            <div class="field">
+              <label for="sAiPersona">Instruksi/Persona AI (opsional)</label>
+              <textarea id="sAiPersona" rows="3" placeholder="Contoh: Jawab santai pakai bahasa gaul, selalu arahkan closing ke WhatsApp admin."></textarea>
+            </div>
+
             <div class="field">
               <label>Kelola Kategori Produk</label>
               <div class="category-manager">

@@ -37,6 +37,10 @@ const DEFAULT_SETTINGS = {
   topbarText: "📦 Kirim ke seluruh Indonesia — dari supplier langsung ke pembeli",
   linkShopee: "",
   bannerAktif: false,
+  aiAktif: false,
+  groqApiKey: "",
+  aiModel: "openai/gpt-oss-20b",
+  aiPersona: "",
 };
 
 function getCart() {
@@ -60,6 +64,7 @@ let ongkirData = {};
 let settings = { ...DEFAULT_SETTINGS };
 let activeKategori = "Semua";
 let searchTerm = "";
+let aiChatHistory = [];
 
 document.addEventListener("DOMContentLoaded", () => {
   bindUI();
@@ -70,6 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
   listenOngkir();
   bindSpinWheel();
   bindBuyerForm();
+  bindAIChat();
 });
 
 /* ---------- realtime listeners ---------- */
@@ -189,6 +195,9 @@ function applyBranding() {
   const shopeeDivider = document.getElementById("shopeeDivider");
   if (shopeeCheckoutBtn) shopeeCheckoutBtn.style.display = hasShopee ? "flex" : "none";
   if (shopeeDivider) shopeeDivider.style.display = hasShopee ? "flex" : "none";
+
+  const aiFab = document.getElementById("aiChatFabBtn");
+  if (aiFab) aiFab.style.display = (settings.aiAktif && settings.groqApiKey) ? "flex" : "none";
 }
 
 function renderKategoriChips() {
@@ -642,6 +651,120 @@ function bindSpinWheel() {
   document.getElementById("spinCheckoutBtn")?.addEventListener("click", () => {
     closeSpinModal();
     openCart();
+  });
+}
+
+/* ---------- AI chat (Groq) ---------- */
+function buildProductContext() {
+  if (products.length === 0) return "Belum ada produk di katalog saat ini.";
+  const list = products.slice(0, 40).map(p => {
+    const stokTxt = Number(p.stok) > 0 ? `stok ${p.stok}` : "stok habis";
+    const hargaTxt = p.hargaCoret ? `${rupiah(p.harga)} (diskon dari ${rupiah(p.hargaCoret)})` : rupiah(p.harga);
+    return `- ${p.nama} | kategori: ${p.kategori} | harga: ${hargaTxt} | ${stokTxt}`;
+  }).join("\n");
+  return `Daftar produk yang tersedia di toko:\n${list}`;
+}
+
+function buildSystemPrompt() {
+  const base = settings.aiPersona?.trim()
+    ? settings.aiPersona.trim()
+    : `Kamu adalah asisten belanja untuk toko online "${settings.namaToko}". Jawab pertanyaan customer dengan ramah, singkat, dan bahasa Indonesia santai. Bantu mereka menemukan produk yang cocok dari katalog di bawah. Kalau customer sudah mantap mau beli, arahkan untuk klik tombol "Checkout via WhatsApp" di keranjang, atau chat admin langsung. Jangan mengarang produk atau harga yang tidak ada di daftar.`;
+  return `${base}\n\n${buildProductContext()}`;
+}
+
+function appendChatMessage(role, text) {
+  const box = document.getElementById("aiChatMessages");
+  if (!box) return null;
+  const el = document.createElement("div");
+  el.className = `ai-msg ${role === "user" ? "ai-msg-user" : "ai-msg-bot"}`;
+  el.textContent = text;
+  box.appendChild(el);
+  box.scrollTop = box.scrollHeight;
+  return el;
+}
+
+function appendLoadingMessage() {
+  const box = document.getElementById("aiChatMessages");
+  if (!box) return null;
+  const el = document.createElement("div");
+  el.className = "ai-msg ai-msg-loading";
+  el.textContent = "Mengetik...";
+  box.appendChild(el);
+  box.scrollTop = box.scrollHeight;
+  return el;
+}
+
+async function sendAIMessage() {
+  const input = document.getElementById("aiChatInput");
+  const sendBtn = document.getElementById("aiChatSendBtn");
+  const text = input?.value.trim();
+  if (!text || !settings.groqApiKey) return;
+
+  appendChatMessage("user", text);
+  aiChatHistory.push({ role: "user", content: text });
+  input.value = "";
+  if (sendBtn) sendBtn.disabled = true;
+  const loadingEl = appendLoadingMessage();
+
+  try {
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${settings.groqApiKey}`,
+      },
+      body: JSON.stringify({
+        model: settings.aiModel || "openai/gpt-oss-20b",
+        messages: [
+          { role: "system", content: buildSystemPrompt() },
+          ...aiChatHistory.slice(-10),
+        ],
+        max_completion_tokens: 400,
+        temperature: 0.7,
+      }),
+    });
+    const data = await res.json();
+    loadingEl?.remove();
+
+    if (!res.ok) {
+      const msg = data?.error?.message || "Gagal menghubungi AI (cek API key di pengaturan admin)";
+      appendChatMessage("bot", `⚠️ ${msg}`);
+      return;
+    }
+
+    const reply = data?.choices?.[0]?.message?.content?.trim() || "Maaf, aku belum bisa jawab itu sekarang.";
+    appendChatMessage("bot", reply);
+    aiChatHistory.push({ role: "assistant", content: reply });
+  } catch (err) {
+    console.error(err);
+    loadingEl?.remove();
+    appendChatMessage("bot", "⚠️ Gagal menghubungi AI — cek koneksi internet kamu.");
+  } finally {
+    if (sendBtn) sendBtn.disabled = false;
+  }
+}
+
+function openAIChatModal() {
+  const overlay = document.getElementById("aiChatOverlay");
+  overlay?.classList.add("show");
+  const box = document.getElementById("aiChatMessages");
+  if (box && box.children.length === 0) {
+    appendChatMessage("bot", `Halo! Aku asisten AI toko ${settings.namaToko}. Mau tanya-tanya produk apa? 😊`);
+  }
+}
+function closeAIChatModal() {
+  document.getElementById("aiChatOverlay")?.classList.remove("show");
+}
+
+function bindAIChat() {
+  document.getElementById("aiChatFabBtn")?.addEventListener("click", openAIChatModal);
+  document.getElementById("closeAiChatModal")?.addEventListener("click", closeAIChatModal);
+  document.getElementById("aiChatOverlay")?.addEventListener("click", (e) => {
+    if (e.target.id === "aiChatOverlay") closeAIChatModal();
+  });
+  document.getElementById("aiChatSendBtn")?.addEventListener("click", sendAIMessage);
+  document.getElementById("aiChatInput")?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); sendAIMessage(); }
   });
 }
 

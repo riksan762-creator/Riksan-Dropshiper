@@ -660,16 +660,30 @@ function buildProductContext() {
   const list = products.slice(0, 40).map(p => {
     const stokTxt = Number(p.stok) > 0 ? `stok ${p.stok}` : "stok habis";
     const hargaTxt = p.hargaCoret ? `${rupiah(p.harga)} (diskon dari ${rupiah(p.hargaCoret)})` : rupiah(p.harga);
-    return `- ${p.nama} | kategori: ${p.kategori} | harga: ${hargaTxt} | ${stokTxt}`;
+    const ratingTxt = p.rating ? `, rating ${p.rating}` : "";
+    return `- ${p.nama} | kategori: ${p.kategori} | harga: ${hargaTxt} | ${stokTxt}${ratingTxt}`;
   }).join("\n");
   return `Daftar produk yang tersedia di toko:\n${list}`;
+}
+
+function buildOngkirContext() {
+  const kota = Object.keys(ongkirData);
+  if (kota.length === 0) return "";
+  const list = kota.map(k => `- ${k}: ${ongkirData[k]}`).join("\n");
+  return `\n\nEstimasi ongkir per wilayah (kasar, dikonfirmasi admin saat checkout):\n${list}`;
 }
 
 function buildSystemPrompt() {
   const base = settings.aiPersona?.trim()
     ? settings.aiPersona.trim()
-    : `Kamu adalah asisten belanja untuk toko online "${settings.namaToko}". Jawab pertanyaan customer dengan ramah, singkat, dan bahasa Indonesia santai. Bantu mereka menemukan produk yang cocok dari katalog di bawah. Kalau customer sudah mantap mau beli, arahkan untuk klik tombol "Checkout via WhatsApp" di keranjang, atau chat admin langsung. Jangan mengarang produk atau harga yang tidak ada di daftar.`;
-  return `${base}\n\n${buildProductContext()}`;
+    : `Kamu adalah asisten belanja yang ramah, gercep, dan pinter buat toko online "${settings.namaToko}". Gaya bahasa santai ala orang Indonesia (boleh pakai kata "kak"/"kamu"), jawaban singkat-padat (maks 3-4 kalimat kecuali diminta detail). Tugas kamu:
+1. Bantu customer nemuin produk yang cocok dari katalog di bawah — kalau nanya rekomendasi, sebutkan 2-3 nama produk konkret beserta harganya.
+2. Kalau nanya ongkir, pakai tabel estimasi wilayah di bawah; kalau kotanya nggak ada di daftar, bilang jujur belum ada datanya dan sarankan tanya admin.
+3. Kalau ada produk yang harganya dicoret (diskon), sebutkan itu sebagai nilai jual.
+4. Kalau customer udah keliatan mantap mau beli, dorong dengan ramah buat masukin ke keranjang terus klik "Checkout via WhatsApp", atau coba dulu tombol 🎁 Spin buat cari kode diskon.
+5. JANGAN PERNAH mengarang nama produk, harga, atau stok yang tidak ada di daftar — kalau nggak ada datanya, bilang terus terang dan tawarkan tanya admin lewat WhatsApp.
+6. Kalau ditanya hal di luar topik toko/produk, jawab singkat lalu arahkan balik ke soal belanja.`;
+  return `${base}\n\n${buildProductContext()}${buildOngkirContext()}`;
 }
 
 function appendChatMessage(role, text) {
@@ -688,21 +702,22 @@ function appendLoadingMessage() {
   if (!box) return null;
   const el = document.createElement("div");
   el.className = "ai-msg ai-msg-loading";
-  el.textContent = "Mengetik...";
+  el.innerHTML = `<span class="ai-typing-dots"><span></span><span></span><span></span></span>`;
   box.appendChild(el);
   box.scrollTop = box.scrollHeight;
   return el;
 }
 
-async function sendAIMessage() {
+async function sendAIMessage(quickText) {
   const input = document.getElementById("aiChatInput");
   const sendBtn = document.getElementById("aiChatSendBtn");
-  const text = input?.value.trim();
+  const text = (quickText ?? input?.value ?? "").trim();
   if (!text || !settings.groqApiKey) return;
 
+  hideQuickReplies();
   appendChatMessage("user", text);
   aiChatHistory.push({ role: "user", content: text });
-  input.value = "";
+  if (input) input.value = "";
   if (sendBtn) sendBtn.disabled = true;
   const loadingEl = appendLoadingMessage();
 
@@ -744,12 +759,35 @@ async function sendAIMessage() {
   }
 }
 
+const AI_QUICK_REPLIES = [
+  { label: "🛍️ Rekomendasi produk", text: "Rekomendasiin produk yang lagi laris atau diskon dong" },
+  { label: "🚚 Cek ongkir", text: "Ongkir ke kotaku berapa ya?" },
+  { label: "🎁 Ada promo?", text: "Lagi ada promo atau diskon apa aja sekarang?" },
+];
+
+function renderQuickReplies() {
+  const box = document.getElementById("aiChatQuick");
+  if (!box) return;
+  box.innerHTML = AI_QUICK_REPLIES.map((q, i) =>
+    `<button type="button" class="ai-chat-quick-btn" data-quick="${i}">${q.label}</button>`
+  ).join("");
+  box.style.display = "flex";
+  box.querySelectorAll("[data-quick]").forEach(btn => {
+    btn.addEventListener("click", () => sendAIMessage(AI_QUICK_REPLIES[Number(btn.dataset.quick)].text));
+  });
+}
+function hideQuickReplies() {
+  const box = document.getElementById("aiChatQuick");
+  if (box) box.style.display = "none";
+}
+
 function openAIChatModal() {
   const overlay = document.getElementById("aiChatOverlay");
   overlay?.classList.add("show");
   const box = document.getElementById("aiChatMessages");
   if (box && box.children.length === 0) {
-    appendChatMessage("bot", `Halo! Aku asisten AI toko ${settings.namaToko}. Mau tanya-tanya produk apa? 😊`);
+    appendChatMessage("bot", `Halo! Aku asisten belanja ${settings.namaToko} 👋 Mau tanya-tanya produk, ongkir, atau promo? Tinggal pilih di bawah, atau ketik langsung.`);
+    renderQuickReplies();
   }
 }
 function closeAIChatModal() {

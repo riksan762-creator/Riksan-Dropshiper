@@ -132,6 +132,30 @@ header.site{
   display:flex;align-items:center;justify-content:center;
   padding:0 4px;
 }
+.account-btn{
+  background:#fff;color:var(--ink);border:1.5px solid var(--ink);
+  border-radius:999px;padding:9px 16px;font-weight:600;font-size:13px;
+}
+.account-btn:hover{border-color:var(--magenta);color:var(--magenta-deep);}
+
+.account-overlay{
+  position:fixed;inset:0;background:rgba(27,16,48,.65);
+  display:none;align-items:center;justify-content:center;z-index:99;padding:20px;
+}
+.account-overlay.show{display:flex;}
+.account-modal{
+  background:var(--paper);border-radius:var(--radius);max-width:380px;width:100%;
+  padding:26px 22px;position:relative;
+  border:2px solid var(--ink);box-shadow:var(--shadow-lg), var(--glow-gold);
+}
+.account-tabs{display:flex;gap:8px;margin-bottom:18px;}
+.account-tab{
+  flex:1;padding:9px;border-radius:999px;border:1.5px solid var(--ink);
+  background:#fff;font-weight:700;font-size:13px;
+}
+.account-tab.active{background:var(--ink);color:#fff;}
+.account-form{display:flex;flex-direction:column;gap:12px;}
+.account-error{color:#c0392b;font-size:12.5px;margin:-4px 0 0;min-height:1em;}
 .admin-link{
   font-size:12px;font-family:var(--font-mono);
   text-decoration:none;color:var(--ink-soft);border-bottom:1px dashed var(--ink-soft);
@@ -636,6 +660,14 @@ footer.site .f-links a{text-decoration:none;border-bottom:1px dashed var(--ink-s
   align-self:flex-start;background:#fff;border:1px solid var(--line);
   border-bottom-left-radius:4px;color:var(--ink-soft);font-style:italic;
 }
+.ai-msg-actions{display:flex;flex-direction:column;gap:6px;margin-top:8px;}
+.ai-msg-add-btn{
+  background:var(--ink);color:#fff;border:none;border-radius:999px;
+  padding:7px 12px;font-size:11.5px;font-weight:700;font-family:var(--font-mono);
+  text-align:left;transition:background .15s ease;
+}
+.ai-msg-add-btn:hover{background:var(--magenta);}
+.ai-msg-add-btn:disabled{background:#ccc;color:#777;}
 .ai-chat-input-row{
   display:flex;gap:8px;padding:12px;border-top:1px solid var(--line);background:#fff;
 }
@@ -777,6 +809,7 @@ footer.site .f-links a{text-decoration:none;border-bottom:1px dashed var(--ink-s
   .search-box{order:3;flex:1;min-width:0;}
   .search-box input{width:100%;}
   .cart-btn{flex-shrink:0;}
+  .account-btn{flex-shrink:0;padding:9px 12px;font-size:12px;}
   .section{padding:clamp(36px,8vw,56px) 0;}
   .hero{padding:clamp(40px,10vw,64px) 0 clamp(56px,12vw,96px);}
   footer.site .container{flex-direction:column;gap:20px;}

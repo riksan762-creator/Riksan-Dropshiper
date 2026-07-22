@@ -108,6 +108,8 @@ let products = [];
 let banners = [];
 let ongkir = [];
 let orders = [];
+let customers = [];
+let customerSearch = "";
 let settings = { ...DEFAULT_SETTINGS };
 let editingId = null;
 let editingBannerId = null;
@@ -118,6 +120,7 @@ let unsubProducts = null;
 let unsubBanners = null;
 let unsubOngkir = null;
 let unsubOrders = null;
+let unsubCustomers = null;
 let boundOnce = false;
 
 /* ---------- auth ---------- */
@@ -139,6 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (unsubBanners) { unsubBanners(); unsubBanners = null; }
       if (unsubOngkir) { unsubOngkir(); unsubOngkir = null; }
       if (unsubOrders) { unsubOrders(); unsubOrders = null; }
+      if (unsubCustomers) { unsubCustomers(); unsubCustomers = null; }
     }
   });
 
@@ -168,6 +172,7 @@ document.addEventListener("DOMContentLoaded", () => {
     listenBanners();
     listenOngkir();
     listenOrders();
+    listenCustomers();
     await loadSettings();
     if (!boundOnce) { bindShellUI(); boundOnce = true; }
   }
@@ -272,6 +277,23 @@ function listenOrders() {
     (err) => {
       console.error(err);
       showToast("Gagal memuat riwayat pesanan — cek koneksi internet");
+    }
+  );
+}
+
+/* ---------- realtime customers (user terdaftar) ---------- */
+function listenCustomers() {
+  if (unsubCustomers) unsubCustomers();
+  unsubCustomers = onSnapshot(
+    collection(db, "customers"),
+    (snap) => {
+      customers = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+      renderUserTable();
+    },
+    (err) => {
+      console.error(err);
+      showToast("Gagal memuat daftar user — cek koneksi internet");
     }
   );
 }
@@ -826,6 +848,52 @@ function openPesananDetail(id) {
   document.getElementById("pesananModal").classList.add("show");
 }
 
+/* ---------- kelola user (customer terdaftar) ---------- */
+function filteredCustomers() {
+  const q = customerSearch.toLowerCase();
+  if (!q) return customers;
+  return customers.filter(c =>
+    (c.name || "").toLowerCase().includes(q) ||
+    (c.email || "").toLowerCase().includes(q) ||
+    (c.phone || "").toLowerCase().includes(q)
+  );
+}
+
+function renderUserTable() {
+  const tbody = document.getElementById("userTableBody");
+  if (!tbody) return;
+  const list = filteredCustomers();
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="5">Belum ada user yang daftar akun di toko.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(c => {
+    const tgl = c.createdAt ? new Date(c.createdAt).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }) : "-";
+    return `
+    <tr>
+      <td>${c.name || "-"}</td>
+      <td>${c.email || "-"}</td>
+      <td>${c.phone || "-"}</td>
+      <td>${tgl}</td>
+      <td><button class="del" data-del-user="${c.id}">Hapus</button></td>
+    </tr>`;
+  }).join("");
+  tbody.querySelectorAll("[data-del-user]").forEach(bt => bt.addEventListener("click", () => deleteCustomer(bt.dataset.delUser)));
+}
+
+async function deleteCustomer(id) {
+  const c = customers.find(x => x.id === id);
+  if (!c) return;
+  if (!confirm(`Hapus data profil "${c.name || c.email}"? Akun login-nya tetap ada sampai dihapus manual di Firebase Console → Authentication.`)) return;
+  try {
+    await deleteDoc(doc(db, "customers", id));
+    showToast("Profil user dihapus dari daftar");
+  } catch (err) {
+    console.error(err);
+    showToast(firebaseErrorMessage(err));
+  }
+}
+
 /* ---------- toast ---------- */
 let toastTimer;
 function showToast(msg) {
@@ -901,6 +969,12 @@ function bindShellUI() {
   // riwayat pesanan
   document.getElementById("closePesananModal")?.addEventListener("click", () => {
     document.getElementById("pesananModal").classList.remove("show");
+  });
+
+  // kelola user
+  document.getElementById("userSearch")?.addEventListener("input", (e) => {
+    customerSearch = e.target.value;
+    renderUserTable();
   });
 
   document.getElementById("tableSearch")?.addEventListener("input", (e) => {

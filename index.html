@@ -18,6 +18,9 @@
         <input type="text" id="searchInput" placeholder="Cari produk...">
         <button id="searchBtn" aria-label="Cari">🔍</button>
       </div>
+      <button class="account-btn" id="openAccountBtn">
+        <span id="accountBtnLabel">👤 Masuk</span>
+      </button>
       <button class="cart-btn" id="openCartBtn">
         🛒 Keranjang <span class="count" id="cartCount">0</span>
       </button>
@@ -186,6 +189,63 @@
     <path d="M12.5 7.2l.9 2.2 2.2.9-2.2.9-.9 2.2-.9-2.2-2.2-.9 2.2-.9.9-2.2z" fill="var(--magenta-deep)"/>
   </svg>
 </button>
+
+<!-- Akun: Modal Masuk/Daftar -->
+<div class="account-overlay" id="accountOverlay">
+  <div class="account-modal">
+    <button class="modal-close" id="closeAccountModal">&times;</button>
+
+    <!-- Belum login: form masuk/daftar -->
+    <div id="accountAuthBox">
+      <div class="account-tabs">
+        <button type="button" class="account-tab active" data-tab="login">Masuk</button>
+        <button type="button" class="account-tab" data-tab="register">Daftar</button>
+      </div>
+
+      <form id="accountLoginForm" class="account-form">
+        <div class="cf-field">
+          <label for="accLoginEmail">Email</label>
+          <input type="email" id="accLoginEmail" placeholder="email@kamu.com" required>
+        </div>
+        <div class="cf-field">
+          <label for="accLoginPass">Password</label>
+          <input type="password" id="accLoginPass" placeholder="••••••••" required>
+        </div>
+        <p class="account-error" id="accLoginError"></p>
+        <button class="btn btn-primary" type="submit" style="width:100%;justify-content:center;">Masuk</button>
+      </form>
+
+      <form id="accountRegisterForm" class="account-form" style="display:none;">
+        <div class="cf-field">
+          <label for="accRegName">Nama Lengkap</label>
+          <input type="text" id="accRegName" placeholder="Nama kamu" required>
+        </div>
+        <div class="cf-field">
+          <label for="accRegEmail">Email</label>
+          <input type="email" id="accRegEmail" placeholder="email@kamu.com" required>
+        </div>
+        <div class="cf-field">
+          <label for="accRegPhone">No. HP (opsional)</label>
+          <input type="text" id="accRegPhone" placeholder="08xxxxxxxxxx">
+        </div>
+        <div class="cf-field">
+          <label for="accRegPass">Password</label>
+          <input type="password" id="accRegPass" placeholder="Minimal 6 karakter" required minlength="6">
+        </div>
+        <p class="account-error" id="accRegError"></p>
+        <button class="btn btn-primary" type="submit" style="width:100%;justify-content:center;">Daftar Akun</button>
+      </form>
+    </div>
+
+    <!-- Sudah login: info akun -->
+    <div id="accountProfileBox" style="display:none;">
+      <h3 style="font-family:var(--font-display);text-transform:uppercase;margin:4px 0 4px;">Akun Saya</h3>
+      <p style="font-size:14px;margin:0 0 4px;"><b id="accProfileName"></b></p>
+      <p style="font-size:13px;color:var(--ink-soft);margin:0 0 20px;" id="accProfileEmail"></p>
+      <button class="btn" style="width:100%;justify-content:center;background:#f2f2f2;color:var(--ink);" id="logoutAccountBtn">Keluar dari Akun</button>
+    </div>
+  </div>
+</div>
 
 <!-- AI Chat: Modal -->
 <div class="ai-chat-overlay" id="aiChatOverlay">

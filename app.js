@@ -740,7 +740,7 @@ function appendLoadingMessage() {
 async function sendAIMessage(quickText) {
   const input = document.getElementById("aiChatInput");
   const sendBtn = document.getElementById("aiChatSendBtn");
-  const text = (quickText ?? input?.value ?? "").trim();
+  const text = (typeof quickText === "string" ? quickText : (input?.value || "")).trim();
   if (!text || !settings.groqApiKey) return;
 
   hideQuickReplies();
@@ -830,7 +830,7 @@ function bindAIChat() {
   document.getElementById("aiChatOverlay")?.addEventListener("click", (e) => {
     if (e.target.id === "aiChatOverlay") closeAIChatModal();
   });
-  document.getElementById("aiChatSendBtn")?.addEventListener("click", sendAIMessage);
+  document.getElementById("aiChatSendBtn")?.addEventListener("click", () => sendAIMessage());
   document.getElementById("aiChatInput")?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") { e.preventDefault(); sendAIMessage(); }
   });

@@ -7,11 +7,13 @@
    ========================================================= */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, doc, onSnapshot, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, doc, onSnapshot, addDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { firebaseConfig } from "./firebase-config.js";
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 const LS_CART = "riksan_cart";
 const LS_BUYER = "riksan_buyer_info";
@@ -65,6 +67,7 @@ let settings = { ...DEFAULT_SETTINGS };
 let activeKategori = "Semua";
 let searchTerm = "";
 let aiChatHistory = [];
+let currentUser = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   bindUI();
@@ -76,6 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
   bindSpinWheel();
   bindBuyerForm();
   bindAIChat();
+  bindAccountAuth();
 });
 
 /* ---------- realtime listeners ---------- */
@@ -686,15 +690,40 @@ function buildSystemPrompt() {
   return `${base}\n\n${buildProductContext()}${buildOngkirContext()}`;
 }
 
-function appendChatMessage(role, text) {
+function matchProductsInText(text) {
+  const lower = text.toLowerCase();
+  return products.filter(p => p.nama && lower.includes(p.nama.toLowerCase())).slice(0, 3);
+}
+
+function appendChatMessage(role, text, matchedProducts = []) {
   const box = document.getElementById("aiChatMessages");
   if (!box) return null;
-  const el = document.createElement("div");
-  el.className = `ai-msg ${role === "user" ? "ai-msg-user" : "ai-msg-bot"}`;
-  el.textContent = text;
-  box.appendChild(el);
+  const wrap = document.createElement("div");
+  wrap.className = `ai-msg ${role === "user" ? "ai-msg-user" : "ai-msg-bot"}`;
+
+  const textEl = document.createElement("div");
+  textEl.textContent = text;
+  wrap.appendChild(textEl);
+
+  if (matchedProducts.length > 0) {
+    const actions = document.createElement("div");
+    actions.className = "ai-msg-actions";
+    matchedProducts.forEach(prod => {
+      const habis = Number(prod.stok) <= 0;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "ai-msg-add-btn";
+      btn.textContent = habis ? `${prod.nama} — Habis` : `🛒 ${prod.nama}`;
+      btn.disabled = habis;
+      btn.addEventListener("click", () => addToCart(prod.id));
+      actions.appendChild(btn);
+    });
+    wrap.appendChild(actions);
+  }
+
+  box.appendChild(wrap);
   box.scrollTop = box.scrollHeight;
-  return el;
+  return wrap;
 }
 
 function appendLoadingMessage() {
@@ -748,7 +777,8 @@ async function sendAIMessage(quickText) {
     }
 
     const reply = data?.choices?.[0]?.message?.content?.trim() || "Maaf, aku belum bisa jawab itu sekarang.";
-    appendChatMessage("bot", reply);
+    const matched = matchProductsInText(reply);
+    appendChatMessage("bot", reply, matched);
     aiChatHistory.push({ role: "assistant", content: reply });
   } catch (err) {
     console.error(err);
@@ -803,6 +833,127 @@ function bindAIChat() {
   document.getElementById("aiChatSendBtn")?.addEventListener("click", sendAIMessage);
   document.getElementById("aiChatInput")?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") { e.preventDefault(); sendAIMessage(); }
+  });
+}
+
+/* ---------- akun customer (Firebase Auth: email/password) ---------- */
+function openAccountModal() {
+  document.getElementById("accountOverlay")?.classList.add("show");
+}
+function closeAccountModal() {
+  document.getElementById("accountOverlay")?.classList.remove("show");
+}
+
+function showAccountLoggedIn(user, profile) {
+  document.getElementById("accountAuthBox").style.display = "none";
+  document.getElementById("accountProfileBox").style.display = "block";
+  document.getElementById("accProfileName").textContent = profile?.name || user.email;
+  document.getElementById("accProfileEmail").textContent = user.email;
+  const label = document.getElementById("accountBtnLabel");
+  if (label) label.textContent = `👤 ${(profile?.name || user.email).split(" ")[0]}`;
+
+  // otomatis prefill nama & no HP ke form checkout kalau masih kosong
+  const nameEl = document.getElementById("buyerName");
+  if (nameEl && !nameEl.value.trim() && profile?.name) {
+    nameEl.value = profile.name;
+    persistBuyerForm();
+  }
+}
+
+function showAccountLoggedOut() {
+  document.getElementById("accountAuthBox").style.display = "block";
+  document.getElementById("accountProfileBox").style.display = "none";
+  const label = document.getElementById("accountBtnLabel");
+  if (label) label.textContent = "👤 Masuk";
+}
+
+async function handleRegister(e) {
+  e.preventDefault();
+  const name = document.getElementById("accRegName").value.trim();
+  const email = document.getElementById("accRegEmail").value.trim();
+  const phone = document.getElementById("accRegPhone").value.trim();
+  const pass = document.getElementById("accRegPass").value;
+  const errEl = document.getElementById("accRegError");
+  errEl.textContent = "";
+
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    await updateProfile(cred.user, { displayName: name });
+    await setDoc(doc(db, "customers", cred.user.uid), {
+      name, email, phone, createdAt: new Date().toISOString(),
+    });
+    showToast("Akun berhasil dibuat! Selamat belanja 🎉");
+    closeAccountModal();
+  } catch (err) {
+    errEl.textContent = translateAuthError(err);
+  }
+}
+
+async function handleLogin(e) {
+  e.preventDefault();
+  const email = document.getElementById("accLoginEmail").value.trim();
+  const pass = document.getElementById("accLoginPass").value;
+  const errEl = document.getElementById("accLoginError");
+  errEl.textContent = "";
+
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+    showToast("Berhasil masuk 👋");
+    closeAccountModal();
+  } catch (err) {
+    errEl.textContent = translateAuthError(err);
+  }
+}
+
+function translateAuthError(err) {
+  const code = err?.code || "";
+  if (code.includes("email-already-in-use")) return "Email ini sudah terdaftar. Coba menu Masuk.";
+  if (code.includes("invalid-email")) return "Format email tidak valid.";
+  if (code.includes("weak-password")) return "Password minimal 6 karakter.";
+  if (code.includes("user-not-found") || code.includes("wrong-password") || code.includes("invalid-credential")) return "Email atau password salah.";
+  if (code.includes("too-many-requests")) return "Terlalu banyak percobaan — coba lagi beberapa saat.";
+  return "Gagal memproses — cek koneksi internet.";
+}
+
+function bindAccountAuth() {
+  document.getElementById("openAccountBtn")?.addEventListener("click", openAccountModal);
+  document.getElementById("closeAccountModal")?.addEventListener("click", closeAccountModal);
+  document.getElementById("accountOverlay")?.addEventListener("click", (e) => {
+    if (e.target.id === "accountOverlay") closeAccountModal();
+  });
+
+  document.querySelectorAll(".account-tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      document.querySelectorAll(".account-tab").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      const isLogin = tab.dataset.tab === "login";
+      document.getElementById("accountLoginForm").style.display = isLogin ? "flex" : "none";
+      document.getElementById("accountRegisterForm").style.display = isLogin ? "none" : "flex";
+    });
+  });
+
+  document.getElementById("accountLoginForm")?.addEventListener("submit", handleLogin);
+  document.getElementById("accountRegisterForm")?.addEventListener("submit", handleRegister);
+  document.getElementById("logoutAccountBtn")?.addEventListener("click", async () => {
+    await signOut(auth);
+    showToast("Kamu sudah keluar dari akun");
+    closeAccountModal();
+  });
+
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    if (user) {
+      let profile = null;
+      try {
+        const snap = await getDoc(doc(db, "customers", user.uid));
+        profile = snap.exists() ? snap.data() : null;
+      } catch (err) {
+        console.error(err);
+      }
+      showAccountLoggedIn(user, profile);
+    } else {
+      showAccountLoggedOut();
+    }
   });
 }
 

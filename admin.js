@@ -302,7 +302,10 @@ function listenOrders() {
     },
     (err) => {
       console.error(err);
-      showToast("Gagal memuat riwayat pesanan — cek koneksi internet");
+      const msg = firebaseErrorMessage(err);
+      showToast(`Gagal memuat pesanan: ${msg}`);
+      const tbody = document.getElementById("pesananTableBody");
+      if (tbody) tbody.innerHTML = `<tr class="empty-row"><td colspan="6" style="color:#c0392b;">⚠️ ${msg}</td></tr>`;
     }
   );
 }
@@ -319,7 +322,10 @@ function listenCustomers() {
     },
     (err) => {
       console.error(err);
-      showToast("Gagal memuat daftar user — cek koneksi internet");
+      const msg = firebaseErrorMessage(err);
+      showToast(`Gagal memuat user: ${msg}`);
+      const tbody = document.getElementById("userTableBody");
+      if (tbody) tbody.innerHTML = `<tr class="empty-row"><td colspan="5" style="color:#c0392b;">⚠️ ${msg}</td></tr>`;
     }
   );
 }

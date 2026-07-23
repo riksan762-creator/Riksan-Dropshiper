@@ -968,17 +968,28 @@ async function handleRegister(e) {
   const errEl = document.getElementById("accRegError");
   errEl.textContent = "";
 
+  let cred;
   try {
-    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    cred = await createUserWithEmailAndPassword(auth, email, pass);
+  } catch (err) {
+    errEl.textContent = translateAuthError(err);
+    return;
+  }
+
+  // Akun login sudah pasti berhasil dibuat di titik ini.
+  // Simpan nama & simpan profil ke Firestore — kalau ini gagal, jangan bikin
+  // customer ngira pendaftarannya gagal total (akunnya tetap bisa dipakai login).
+  try {
     await updateProfile(cred.user, { displayName: name });
     await setDoc(doc(db, "customers", cred.user.uid), {
       name, email, phone, createdAt: new Date().toISOString(),
     });
     showToast("Akun berhasil dibuat! Selamat belanja 🎉");
-    closeAccountModal();
   } catch (err) {
-    errEl.textContent = translateAuthError(err);
+    console.error("Akun dibuat, tapi gagal simpan profil:", err);
+    showToast("Akun dibuat, tapi profil belum lengkap tersimpan — nggak masalah, coba masuk aja.");
   }
+  closeAccountModal();
 }
 
 async function handleLogin(e) {
@@ -1039,6 +1050,18 @@ function bindAccountAuth() {
       try {
         const snap = await getDoc(doc(db, "customers", user.uid));
         profile = snap.exists() ? snap.data() : null;
+
+        // self-heal: kalau akun login ada tapi profil Firestore-nya hilang
+        // (misal gara-gara error pas daftar dulu), bikinin ulang otomatis.
+        if (!profile) {
+          profile = {
+            name: user.displayName || "",
+            email: user.email || "",
+            phone: "",
+            createdAt: new Date().toISOString(),
+          };
+          await setDoc(doc(db, "customers", user.uid), profile);
+        }
       } catch (err) {
         console.error(err);
       }

@@ -147,6 +147,7 @@ header.site{
   background:var(--paper);border-radius:var(--radius);max-width:380px;width:100%;
   padding:26px 22px;position:relative;
   border:2px solid var(--ink);box-shadow:var(--shadow-lg), var(--glow-gold);
+  max-height:85vh;overflow-y:auto;
 }
 .account-tabs{display:flex;gap:8px;margin-bottom:18px;}
 .account-tab{
@@ -156,6 +157,20 @@ header.site{
 .account-tab.active{background:var(--ink);color:#fff;}
 .account-form{display:flex;flex-direction:column;gap:12px;}
 .account-error{color:#c0392b;font-size:12.5px;margin:-4px 0 0;min-height:1em;}
+.my-orders-head{
+  font-family:var(--font-mono);font-weight:700;font-size:12.5px;
+  text-transform:uppercase;letter-spacing:.03em;color:var(--ink-soft);
+  border-top:1px dashed var(--line);padding-top:14px;margin-bottom:10px;
+}
+.my-orders-list{display:flex;flex-direction:column;gap:10px;max-height:260px;overflow-y:auto;}
+.my-order-card{
+  background:#fff;border:1.5px solid var(--line);border-radius:12px;
+  padding:10px 14px;font-size:12.5px;
+}
+.my-order-card .mo-top{display:flex;justify-content:space-between;font-family:var(--font-mono);color:var(--ink-soft);font-size:11px;margin-bottom:4px;}
+.my-order-card .mo-items{color:var(--ink);line-height:1.5;}
+.my-order-card .mo-total{font-weight:700;color:var(--magenta-deep);margin-top:4px;}
+.my-orders-empty{font-size:12.5px;color:var(--ink-soft);text-align:center;padding:12px 0;}
 .admin-link{
   font-size:12px;font-family:var(--font-mono);
   text-decoration:none;color:var(--ink-soft);border-bottom:1px dashed var(--ink-soft);
@@ -270,6 +285,22 @@ header.site{
   display:flex;justify-content:space-between;align-items:flex-end;
   margin-bottom:28px;flex-wrap:wrap;gap:12px;
 }
+.sort-select{
+  border:1.5px solid var(--ink);border-radius:999px;
+  padding:9px 16px;font-family:var(--font-mono);font-size:12.5px;font-weight:600;
+  background:#fff;color:var(--ink);cursor:pointer;
+}
+.sort-select:focus{outline:none;border-color:var(--magenta);}
+.badge-terlaris{
+  position:absolute;top:10px;left:10px;
+  font-family:var(--font-mono);font-size:10.5px;font-weight:700;
+  padding:4px 9px;border-radius:999px;
+  background:linear-gradient(135deg, var(--gold), var(--magenta));color:#fff;
+  transform:rotate(-6deg);
+  border:1px solid rgba(255,255,255,.6);
+  z-index:2;
+}
+.card .badge-terlaris ~ .badge-stock{top:34px;}
 .section-head .eyebrow-sm{
   font-family:var(--font-mono);font-size:12px;color:var(--magenta-deep);
   letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;display:block;
@@ -568,6 +599,23 @@ footer.site .f-links a{text-decoration:none;border-bottom:1px dashed var(--ink-s
 .modal .m-body .price-wrap{margin-bottom:12px;}
 .modal .m-body .price{font-family:var(--font-mono);color:var(--magenta-deep);font-weight:700;font-size:20px;}
 .modal .m-body p.desc{font-size:14px;color:var(--ink-soft);margin-bottom:20px;}
+
+.testimoni-section{
+  margin-top:20px;padding-top:16px;border-top:1px dashed var(--line);
+}
+.testimoni-head{
+  font-family:var(--font-mono);font-weight:700;font-size:12.5px;
+  text-transform:uppercase;letter-spacing:.03em;color:var(--ink-soft);
+  margin-bottom:10px;
+}
+.testimoni-row{
+  background:var(--paper-dim);border-radius:10px;
+  padding:10px 14px;margin-bottom:8px;
+}
+.testimoni-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.testimoni-top b{font-size:13px;color:var(--ink);}
+.testimoni-stars{font-size:11px;}
+.testimoni-row p{margin:0;font-size:13px;color:var(--ink-soft);line-height:1.5;}
 .modal-close{position:absolute;top:14px;right:14px;background:var(--ink);color:#fff;border:none;width:32px;height:32px;border-radius:50%;font-size:16px;}
 
 .wa-float{

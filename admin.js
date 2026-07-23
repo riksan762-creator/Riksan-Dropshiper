@@ -133,8 +133,28 @@ document.addEventListener("DOMContentLoaded", () => {
   const loginWrap = document.getElementById("loginWrap");
   const loginBtn = loginForm?.querySelector("button[type=submit]");
 
-  onAuthStateChanged(auth, (user) => {
+  onAuthStateChanged(auth, async (user) => {
     if (user) {
+      let isAdminUser = false;
+      try {
+        const adminSnap = await getDoc(doc(db, "admins", user.uid));
+        isAdminUser = adminSnap.exists();
+      } catch (err) {
+        console.error("Gagal cek status admin:", err);
+      }
+
+      if (!isAdminUser) {
+        await signOut(auth);
+        loginWrap.style.display = "flex";
+        shell.style.display = "none";
+        const err = document.getElementById("loginError");
+        if (err) {
+          err.textContent = "Akun ini bukan akun admin. Login pakai akun admin yang terdaftar di collection 'admins'.";
+          err.classList.add("show");
+        }
+        return;
+      }
+
       loginWrap.style.display = "none";
       shell.style.display = "flex";
       boot();

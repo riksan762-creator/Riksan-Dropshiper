@@ -63,6 +63,7 @@
       <button class="nav-item" data-view="viewOngkir">🚚 Kelola Ongkir</button>
       <button class="nav-item" data-view="viewPesanan">🧾 Riwayat Pesanan</button>
       <button class="nav-item" data-view="viewUser">👥 Kelola User</button>
+      <button class="nav-item" data-view="viewTestimoni">⭐ Kelola Testimoni</button>
       <button class="nav-item" data-view="viewPengaturan">⚙️ Pengaturan Toko</button>
     </nav>
     <div class="foot">
@@ -207,6 +208,25 @@
             <table>
               <thead><tr><th>Nama</th><th>Email</th><th>No. HP</th><th>Daftar Sejak</th><th>Aksi</th></tr></thead>
               <tbody id="userTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- KELOLA TESTIMONI -->
+      <section class="view-panel" id="viewTestimoni">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Testimoni Customer</h3>
+            <button class="btn-add" id="btnAddTestimoni">+ Tambah Testimoni</button>
+          </div>
+          <p style="font-size:13px;color:var(--ink-soft,#3A2C52);margin:-6px 0 16px;line-height:1.6;">
+            Testimoni yang dikaitkan ke produk tertentu bakal muncul di halaman detail produk itu di toko. Bisa diketik ulang dari review yang udah masuk WhatsApp.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Nama</th><th>Rating</th><th>Komentar</th><th>Produk</th><th>Aksi</th></tr></thead>
+              <tbody id="testimoniTableBody"></tbody>
             </table>
           </div>
         </div>
@@ -408,6 +428,44 @@
     <button class="modal-close" id="closePesananModal">&times;</button>
     <h3>Detail Pesanan</h3>
     <div id="pesananDetailBody" style="font-size:13.5px;"></div>
+  </div>
+</div>
+
+<!-- MODAL: TAMBAH/EDIT TESTIMONI -->
+<div class="modal-overlay" id="testimoniModal">
+  <div class="modal-box">
+    <button class="modal-close" id="closeTestimoniModal">&times;</button>
+    <h3 id="testimoniModalTitle">Tambah Testimoni</h3>
+    <form id="testimoniForm">
+      <div class="form-grid">
+        <div class="field full">
+          <label for="tNama">Nama Customer *</label>
+          <input type="text" id="tNama" placeholder="Contoh: Budi Santoso" required>
+        </div>
+        <div class="field">
+          <label for="tRating">Rating *</label>
+          <select id="tRating" required>
+            <option value="5">⭐⭐⭐⭐⭐ (5)</option>
+            <option value="4">⭐⭐⭐⭐ (4)</option>
+            <option value="3">⭐⭐⭐ (3)</option>
+            <option value="2">⭐⭐ (2)</option>
+            <option value="1">⭐ (1)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="tProduk">Produk Terkait *</label>
+          <select id="tProduk" required></select>
+        </div>
+        <div class="field full">
+          <label for="tKomentar">Komentar *</label>
+          <textarea id="tKomentar" rows="3" placeholder="Barangnya bagus, pengiriman cepat..." required></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="cancel" id="cancelTestimoniForm">Batal</button>
+        <button type="submit" class="save">Simpan Testimoni</button>
+      </div>
+    </form>
   </div>
 </div>
 

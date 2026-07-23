@@ -110,6 +110,9 @@ let ongkir = [];
 let orders = [];
 let customers = [];
 let customerSearch = "";
+let testimoni = [];
+let editingTestimoniId = null;
+let unsubTestimoni = null;
 let settings = { ...DEFAULT_SETTINGS };
 let editingId = null;
 let editingBannerId = null;
@@ -143,6 +146,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (unsubOngkir) { unsubOngkir(); unsubOngkir = null; }
       if (unsubOrders) { unsubOrders(); unsubOrders = null; }
       if (unsubCustomers) { unsubCustomers(); unsubCustomers = null; }
+      if (unsubTestimoni) { unsubTestimoni(); unsubTestimoni = null; }
     }
   });
 
@@ -173,6 +177,7 @@ document.addEventListener("DOMContentLoaded", () => {
     listenOngkir();
     listenOrders();
     listenCustomers();
+    listenTestimoni();
     await loadSettings();
     if (!boundOnce) { bindShellUI(); boundOnce = true; }
   }
@@ -222,6 +227,7 @@ function listenProducts() {
       renderKategoriFilter();
       renderStokKritis();
       renderTopProduk();
+      renderTestimoniTable();
     },
     (err) => {
       console.error(err);
@@ -294,6 +300,23 @@ function listenCustomers() {
     (err) => {
       console.error(err);
       showToast("Gagal memuat daftar user — cek koneksi internet");
+    }
+  );
+}
+
+/* ---------- realtime testimoni ---------- */
+function listenTestimoni() {
+  if (unsubTestimoni) unsubTestimoni();
+  unsubTestimoni = onSnapshot(
+    collection(db, "testimoni"),
+    (snap) => {
+      testimoni = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+      renderTestimoniTable();
+    },
+    (err) => {
+      console.error(err);
+      showToast("Gagal memuat testimoni — cek koneksi internet");
     }
   );
 }
@@ -894,6 +917,98 @@ async function deleteCustomer(id) {
   }
 }
 
+/* ---------- kelola testimoni ---------- */
+function populateTestimoniProdukSelect(selected) {
+  const sel = document.getElementById("tProduk");
+  if (!sel) return;
+  sel.innerHTML = products.map(p => `<option value="${p.id}">${p.nama}</option>`).join("");
+  if (selected) sel.value = selected;
+}
+
+function renderTestimoniTable() {
+  const tbody = document.getElementById("testimoniTableBody");
+  if (!tbody) return;
+  if (testimoni.length === 0) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="5">Belum ada testimoni. Klik "+ Tambah Testimoni" untuk mulai.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = testimoni.map(t => {
+    const prod = products.find(p => p.id === t.produkId);
+    const komentarSingkat = (t.komentar || "").length > 60 ? t.komentar.slice(0, 60) + "…" : (t.komentar || "");
+    return `
+    <tr>
+      <td>${t.nama}</td>
+      <td>${"⭐".repeat(Number(t.rating) || 0)}</td>
+      <td>${komentarSingkat}</td>
+      <td>${prod ? prod.nama : "<span style='color:var(--ink-soft,#3A2C52);'>(produk dihapus)</span>"}</td>
+      <td>
+        <div class="row-actions">
+          <button class="edit" data-edit-testimoni="${t.id}">Edit</button>
+          <button class="del" data-del-testimoni="${t.id}">Hapus</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join("");
+  tbody.querySelectorAll("[data-edit-testimoni]").forEach(bt => bt.addEventListener("click", () => openTestimoniModal(bt.dataset.editTestimoni)));
+  tbody.querySelectorAll("[data-del-testimoni]").forEach(bt => bt.addEventListener("click", () => deleteTestimoni(bt.dataset.delTestimoni)));
+}
+
+function openTestimoniModal(id) {
+  editingTestimoniId = id || null;
+  const t = id ? testimoni.find(x => x.id === id) : null;
+  document.getElementById("testimoniModalTitle").textContent = t ? "Edit Testimoni" : "Tambah Testimoni";
+  document.getElementById("tNama").value = t?.nama || "";
+  document.getElementById("tRating").value = t?.rating || "5";
+  document.getElementById("tKomentar").value = t?.komentar || "";
+  populateTestimoniProdukSelect(t?.produkId || "");
+  document.getElementById("testimoniModal").classList.add("show");
+}
+function closeTestimoniModal() {
+  document.getElementById("testimoniModal").classList.remove("show");
+  editingTestimoniId = null;
+}
+
+async function saveTestimoniForm(e) {
+  e.preventDefault();
+  const nama = document.getElementById("tNama").value.trim();
+  const rating = Number(document.getElementById("tRating").value);
+  const produkId = document.getElementById("tProduk").value;
+  const komentar = document.getElementById("tKomentar").value.trim();
+
+  if (!nama || !komentar || !produkId) {
+    showToast("Lengkapi semua kolom wajib dulu ya");
+    return;
+  }
+
+  const saveBtn = document.querySelector("#testimoniForm .save");
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = "Menyimpan..."; }
+
+  const id = editingTestimoniId || genId("T");
+  const data = { nama, rating, produkId, komentar, createdAt: editingTestimoniId ? (testimoni.find(x => x.id === editingTestimoniId)?.createdAt || new Date().toISOString()) : new Date().toISOString() };
+
+  try {
+    await setDoc(doc(db, "testimoni", id), data);
+    showToast(editingTestimoniId ? "Testimoni berhasil diperbarui" : "Testimoni baru ditambahkan");
+    closeTestimoniModal();
+  } catch (err) {
+    console.error(err);
+    showToast(firebaseErrorMessage(err));
+  } finally {
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = "Simpan Testimoni"; }
+  }
+}
+
+async function deleteTestimoni(id) {
+  if (!confirm("Hapus testimoni ini?")) return;
+  try {
+    await deleteDoc(doc(db, "testimoni", id));
+    showToast("Testimoni dihapus");
+  } catch (err) {
+    console.error(err);
+    showToast(firebaseErrorMessage(err));
+  }
+}
+
 /* ---------- toast ---------- */
 let toastTimer;
 function showToast(msg) {
@@ -976,6 +1091,12 @@ function bindShellUI() {
     customerSearch = e.target.value;
     renderUserTable();
   });
+
+  // kelola testimoni
+  document.getElementById("btnAddTestimoni")?.addEventListener("click", () => openTestimoniModal(null));
+  document.getElementById("closeTestimoniModal")?.addEventListener("click", closeTestimoniModal);
+  document.getElementById("cancelTestimoniForm")?.addEventListener("click", closeTestimoniModal);
+  document.getElementById("testimoniForm")?.addEventListener("submit", saveTestimoniForm);
 
   document.getElementById("tableSearch")?.addEventListener("input", (e) => {
     tableSearch = e.target.value;

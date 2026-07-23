@@ -7,7 +7,7 @@
    ========================================================= */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, doc, onSnapshot, addDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, doc, onSnapshot, addDoc, setDoc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { firebaseConfig } from "./firebase-config.js";
 
@@ -63,11 +63,14 @@ let banners = [];
 let bannerSlideIndex = 0;
 let bannerTimer = null;
 let ongkirData = {};
+let testimoni = [];
 let settings = { ...DEFAULT_SETTINGS };
 let activeKategori = "Semua";
+let sortBy = "default";
 let searchTerm = "";
 let aiChatHistory = [];
 let currentUser = null;
+let unsubMyOrders = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   bindUI();
@@ -76,6 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
   listenBanners();
   listenSettings();
   listenOngkir();
+  listenTestimoni();
   bindSpinWheel();
   bindBuyerForm();
   bindAIChat();
@@ -230,17 +234,32 @@ function renderStats() {
 }
 
 function filteredProducts() {
-  return products.filter(p => {
+  const list = products.filter(p => {
     const matchKategori = activeKategori === "Semua" || p.kategori === activeKategori;
     const matchSearch = p.nama.toLowerCase().includes(searchTerm.toLowerCase());
     return matchKategori && matchSearch;
   });
+  const sorted = [...list];
+  if (sortBy === "termurah") sorted.sort((a, b) => a.harga - b.harga);
+  else if (sortBy === "termahal") sorted.sort((a, b) => b.harga - a.harga);
+  else if (sortBy === "rating") sorted.sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0));
+  else if (sortBy === "terlaris") sorted.sort((a, b) => (Number(b.terjual) || 0) - (Number(a.terjual) || 0));
+  return sorted;
+}
+
+function getTopSellingIds() {
+  return [...products]
+    .filter(p => Number(p.terjual) > 0)
+    .sort((a, b) => Number(b.terjual) - Number(a.terjual))
+    .slice(0, 3)
+    .map(p => p.id);
 }
 
 function renderGrid() {
   const grid = document.getElementById("productGrid");
   if (!grid) return;
   const list = filteredProducts();
+  const topIds = getTopSellingIds();
   if (list.length === 0) {
     grid.innerHTML = `<div class="empty-state">Belum ada produk cocok — coba kata kunci atau kategori lain.</div>`;
     return;
@@ -248,9 +267,11 @@ function renderGrid() {
   grid.innerHTML = list.map(p => {
     const habis = Number(p.stok) <= 0;
     const diskon = p.hargaCoret && p.hargaCoret > p.harga ? Math.round((1 - p.harga / p.hargaCoret) * 100) : 0;
+    const terlaris = topIds.includes(p.id);
     return `
     <div class="card">
       <div class="thumb" data-open="${p.id}">
+        ${terlaris ? `<span class="badge-terlaris">🏆 Terlaris</span>` : ""}
         <span class="badge-stock ${habis ? "habis" : ""}">${habis ? "Stok Habis" : "Ready Stock"}</span>
         ${diskon > 0 ? `<span class="badge-diskon">-${diskon}%</span>` : ""}
         <img src="${p.gambar}" alt="${p.nama}" loading="lazy">
@@ -297,6 +318,7 @@ function openModal(id) {
         <p class="desc">${p.deskripsi || "Tidak ada deskripsi tambahan."}</p>
         <p style="font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);">Stok: ${p.stok}</p>
         <button class="btn btn-primary" id="modalAdd" ${habis ? "disabled" : ""} style="width:100%;justify-content:center;">${habis ? "Stok Habis" : "Tambah ke Keranjang"}</button>
+        ${buildTestimoniHTML(id)}
       </div>
     </div>`;
   overlay.classList.add("show");
@@ -444,6 +466,38 @@ function updateOngkirEstimate() {
   }
 }
 
+/* ---------- testimoni customer (per produk) ---------- */
+function listenTestimoni() {
+  onSnapshot(
+    collection(db, "testimoni"),
+    (snap) => {
+      testimoni = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    },
+    (err) => console.error("Gagal memuat testimoni:", err)
+  );
+}
+
+function buildTestimoniHTML(produkId) {
+  const list = testimoni.filter(t => t.produkId === produkId);
+  if (list.length === 0) return "";
+  const rows = list.map(t => `
+    <div class="testimoni-row">
+      <div class="testimoni-top">
+        <b>${t.nama}</b>
+        <span class="testimoni-stars">${"⭐".repeat(Number(t.rating) || 0)}</span>
+      </div>
+      <p>${t.komentar}</p>
+    </div>
+  `).join("");
+  return `
+    <div class="testimoni-section">
+      <div class="testimoni-head">💬 Testimoni Customer (${list.length})</div>
+      ${rows}
+    </div>
+  `;
+}
+
 function persistBuyerForm() {
   saveBuyerInfo({
     name: document.getElementById("buyerName")?.value.trim() || "",
@@ -514,6 +568,7 @@ function logOrder(cart, total, buyer, spin) {
       items,
       total,
       buyer: { name: buyer.name || "", city: buyer.city || "", address: buyer.address || "" },
+      buyerUid: currentUser?.uid || null,
       voucher: (spin && spin.type !== "none") ? { code: spin.code, label: spin.full } : null,
       createdAt: new Date().toISOString(),
     }).catch(err => console.error("Gagal mencatat riwayat pesanan:", err));
@@ -858,6 +913,8 @@ function showAccountLoggedIn(user, profile) {
     nameEl.value = profile.name;
     persistBuyerForm();
   }
+
+  listenMyOrders(user.uid);
 }
 
 function showAccountLoggedOut() {
@@ -865,6 +922,41 @@ function showAccountLoggedOut() {
   document.getElementById("accountProfileBox").style.display = "none";
   const label = document.getElementById("accountBtnLabel");
   if (label) label.textContent = "👤 Masuk";
+  if (unsubMyOrders) { unsubMyOrders(); unsubMyOrders = null; }
+}
+
+/* ---------- riwayat pesanan saya (customer) ---------- */
+function listenMyOrders(uid) {
+  if (unsubMyOrders) unsubMyOrders();
+  const q = query(collection(db, "orders"), where("buyerUid", "==", uid));
+  unsubMyOrders = onSnapshot(
+    q,
+    (snap) => {
+      const myOrders = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+      renderMyOrders(myOrders);
+    },
+    (err) => console.error("Gagal memuat pesanan saya:", err)
+  );
+}
+
+function renderMyOrders(myOrders) {
+  const box = document.getElementById("myOrdersList");
+  if (!box) return;
+  if (myOrders.length === 0) {
+    box.innerHTML = `<p class="my-orders-empty">Belum ada pesanan. Yuk checkout produk pertama kamu 🛍️</p>`;
+    return;
+  }
+  box.innerHTML = myOrders.map(o => {
+    const tgl = o.createdAt ? new Date(o.createdAt).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }) : "-";
+    const itemsTxt = (o.items || []).map(it => `${it.nama} x${it.qty}`).join(", ");
+    return `
+    <div class="my-order-card">
+      <div class="mo-top"><span>${tgl}</span>${o.voucher ? `<span>🎁 ${o.voucher.code}</span>` : ""}</div>
+      <div class="mo-items">${itemsTxt}</div>
+      <div class="mo-total">${rupiah(o.total)}</div>
+    </div>`;
+  }).join("");
 }
 
 async function handleRegister(e) {
@@ -971,4 +1063,9 @@ function bindUI() {
     renderGrid();
   });
   document.getElementById("searchBtn")?.addEventListener("click", () => searchInput?.focus());
+
+  document.getElementById("sortSelect")?.addEventListener("change", (e) => {
+    sortBy = e.target.value;
+    renderGrid();
+  });
 }

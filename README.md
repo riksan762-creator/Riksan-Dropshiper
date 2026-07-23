@@ -1,54 +1,70 @@
 <div align="center">
 
-![Header](https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=220&section=header&text=Riksan%20Dropship&fontSize=55&fontColor=fff&animation=fadeIn&fontAlignY=38&desc=Toko%20Online%20Realtime%20%2B%20AI%20Shopping%20Assistant&descAlignY=58&descSize=18)
+![Header](https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=230&section=header&text=RIKSAN%20DROPSHIP&fontSize=50&fontColor=fff&animation=fadeIn&fontAlignY=38&desc=Realtime%20E-Commerce%20%C2%B7%20AI-Powered%20%C2%B7%20Zero%20Backend&descAlignY=58&descSize=17)
 
-<a href="https://riksan762-creator.github.io/" target="_blank">
-  <img src="https://img.shields.io/badge/🔗_LIVE_DEMO-Klik_Disini-E63E7F?style=for-the-badge&labelColor=1B1030" />
+![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&weight=500&size=22&pause=1200&color=D4AF37&center=true&vCenter=true&width=650&lines=Static+site+%2B+Firebase+realtime+backend;Admin+panel+lengkap+tanpa+server+sendiri;Ditenagai+AI+Shopping+Assistant+%F0%9F%A4%96;Deploy+ke+GitHub+Pages+dalam+hitungan+menit)
+
+<br>
+
+<a href="https://riksan762-creator.github.io/Riksan-Dropshiper/" target="_blank">
+  <img src="https://img.shields.io/badge/🚀_LIVE_DEMO-Kunjungi_Toko-E63E7F?style=for-the-badge&labelColor=1B1030" />
 </a>
+<a href="https://github.com/riksan762-creator/Riksan-Dropshiper/stargazers" target="_blank">
+  <img src="https://img.shields.io/github/stars/riksan762-creator/Riksan-Dropshiper?style=for-the-badge&color=D4AF37&labelColor=1B1030" />
+</a>
+<a href="https://github.com/riksan762-creator/Riksan-Dropshiper/network/members" target="_blank">
+  <img src="https://img.shields.io/github/forks/riksan762-creator/Riksan-Dropshiper?style=for-the-badge&color=12897A&labelColor=1B1030" />
+</a>
+<img src="https://img.shields.io/badge/status-production-brightgreen?style=for-the-badge&labelColor=1B1030" />
 
 <br><br>
 
-![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=20&pause=1000&color=D4AF37&center=true&vCenter=true&width=600&lines=Static+website+dengan+backend+realtime+Firebase;Panel+admin+lengkap+tanpa+server+sendiri;Ditenagai+AI+%E2%80%94+bukan+sekadar+katalog+biasa+%F0%9F%A4%96)
+<img src="https://skillicons.dev/icons?i=html,css,js,firebase,githubactions,vscode&theme=dark" />
 
 </div>
 
 <br>
 
-<div align="center">
+> ### ⚡ Zero backend server · Zero build step · 100% realtime
+> Semua data tersinkron langsung lewat Firestore `onSnapshot`. Admin ubah harga produk dari HP, ratusan pengunjung lain langsung lihat perubahan itu **detik itu juga** — tanpa refresh, tanpa server yang perlu di-maintain.
 
-![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
-![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
-![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
-![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)
-![GitHub Pages](https://img.shields.io/badge/GitHub_Pages-222222?style=for-the-badge&logo=github&logoColor=white)
-![Groq](https://img.shields.io/badge/Groq_AI-F55036?style=for-the-badge&logo=lightning&logoColor=white)
+---
 
-</div>
+## 📚 Daftar Isi
 
-<br>
-
-> **Zero backend server. Zero build step. 100% realtime.**
-> Semua data tersinkron langsung lewat Firestore `onSnapshot` — admin ubah produk di satu HP, ratusan pengunjung lain lihat perubahan detik itu juga, tanpa refresh.
+- [🤖 Fitur AI](#-ditenagai-ai--bukan-sekadar-katalog-biasa)
+- [✨ Fitur Lengkap](#-fitur-lengkap)
+- [🧰 Tech Stack](#-tech-stack)
+- [🏗️ Arsitektur](#️-arsitektur-sistem)
+- [📁 Struktur Proyek](#-struktur-proyek)
+- [🚀 Cara Deploy](#-cara-deploy-sendiri)
+- [🔒 Keamanan](#-keamanan-firestore-rules)
+- [🗺️ Roadmap](#️-roadmap)
 
 ---
 
 ## 🤖 Ditenagai AI — Bukan Sekadar Katalog Biasa
 
-Ini bukan template toko online biasa. Riksan Dropship punya **asisten belanja AI bawaan** yang jalan langsung di browser customer, terhubung ke **Groq API** (`openai/gpt-oss-20b`, model super cepat & gratis):
+Riksan Dropship punya **asisten belanja AI bawaan**, jalan langsung di browser customer, terhubung real-time ke **[Groq API](https://groq.com)** (`openai/gpt-oss-20b` — cepat, gratis, tanpa antre).
 
-```
-🧠 AI dikasih konteks LIVE dari Firestore setiap kali chat dibuka:
-   ├─ Seluruh katalog produk (nama, harga, diskon, stok, rating) — realtime
-   ├─ Tabel estimasi ongkir per kota/wilayah — realtime
-   └─ System prompt & persona yang bisa diatur admin tanpa sentuh kode
+```mermaid
+graph LR
+    A[Customer buka Chat AI] --> B{Groq LLM}
+    C[(Firestore: products)] -.realtime context.-> B
+    D[(Firestore: ongkir)] -.realtime context.-> B
+    E[Persona & config admin] -.system prompt.-> B
+    B --> F[Jawaban akurat + tombol Tambah ke Keranjang]
 ```
 
-**Kenapa ini keren, bukan cuma "chatbot tempel":**
-- 🎯 **Anti halusinasi** — AI dilarang keras mengarang nama produk/harga/stok yang gak ada di database. Kalau gak tau, AI jujur bilang gak tau.
-- 🛒 **Actionable** — AI bisa nyaranin produk lengkap dengan tombol "🛒 Tambah ke Keranjang" langsung di dalam chat, gak cuma teks kosong.
-- 💬 **Quick replies pintar** — rekomendasi produk, cek ongkir, cek promo, satu tap tanpa ngetik.
-- ⚙️ **Full dikontrol admin** — API key, model, dan persona AI semua diatur dari panel admin, tanpa sentuh satu baris kode pun.
-- 🔄 **Selalu up-to-date** — begitu admin ubah stok/harga di panel, AI langsung "tau" perubahan itu di chat berikutnya. Gak ada data basi.
+**Kenapa ini bukan sekadar "chatbot tempel":**
+
+| | |
+|---|---|
+| 🎯 **Anti-halusinasi** | AI dilarang keras mengarang produk/harga/stok yang gak ada di database. Gak tau → jujur bilang gak tau. |
+| 🛒 **Actionable** | Bisa nyaranin produk lengkap dengan tombol *"🛒 Tambah ke Keranjang"* langsung di dalam chat. |
+| 💬 **Quick replies** | Rekomendasi produk, cek ongkir, cek promo — satu tap tanpa ngetik. |
+| ⚙️ **No-code config** | API key, model, dan persona AI diatur penuh dari admin panel, tanpa sentuh kode. |
+| 🔄 **Selalu akurat** | Stok/harga berubah di admin panel → AI langsung "tau" di chat berikutnya. Zero stale data. |
 
 ---
 
@@ -68,7 +84,7 @@ Ini bukan template toko online biasa. Riksan Dropship punya **asisten belanja AI
 - 🖼️ Banner promo dengan auto-slider
 - 🎁 Roda Spin Diskon (*weighted random prize*)
 - 👤 Akun customer + riwayat pesanan pribadi
-- 🤖 AI Shopping Assistant (lihat di atas)
+- 🤖 AI Shopping Assistant
 
 </td>
 <td width="50%" valign="top">
@@ -93,26 +109,51 @@ Ini bukan template toko online biasa. Riksan Dropship punya **asisten belanja AI
 
 <div align="center">
 
-| Layer | Teknologi |
-|:---:|:---:|
-| **Frontend** | HTML5 · CSS3 (design tokens) · Vanilla JS (ES Modules) |
-| **Database** | Firebase Firestore — realtime sync via `onSnapshot` |
-| **Auth** | Firebase Authentication (email/password) |
-| **AI Engine** | Groq API — `openai/gpt-oss-20b` |
-| **Hosting** | GitHub Pages — 100% statis, zero server |
-| **Media** | Base64 + kompresi client-side (hemat kuota, no Storage bucket) |
+![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)
+![Firestore](https://img.shields.io/badge/Firestore-FFA000?style=for-the-badge&logo=firebase&logoColor=black)
+![GitHub Pages](https://img.shields.io/badge/GitHub_Pages-222222?style=for-the-badge&logo=github&logoColor=white)
+![Groq](https://img.shields.io/badge/Groq_AI-F55036?style=for-the-badge&logo=lightning&logoColor=white)
 
 </div>
 
-Tidak ada framework. Tidak ada `npm install`. Tidak ada build step.
-Clone → isi config → push → live. Sesederhana itu.
+| Layer | Teknologi | Keterangan |
+|---|---|---|
+| **Frontend** | HTML5 · CSS3 · Vanilla JS (ES Modules) | Tanpa framework, tanpa build step |
+| **Database** | Firebase Firestore | Realtime sync via `onSnapshot`, no polling |
+| **Auth** | Firebase Authentication | Email/password, role admin via Firestore |
+| **AI Engine** | Groq API — `openai/gpt-oss-20b` | Konfigurasi model & persona dari admin panel |
+| **Hosting** | GitHub Pages | 100% statis, gratis, zero maintenance |
+| **Media** | Base64 + kompresi client-side | Hemat kuota, tanpa Firebase Storage bucket |
+
+---
+
+## 🏗️ Arsitektur Sistem
+
+```
+┌─────────────────┐        ┌──────────────────┐        ┌─────────────────┐
+│   index.html     │◄──────►│  Firebase          │◄──────►│  admin.html       │
+│   (Storefront)   │  sync   │  Firestore + Auth  │  sync   │  (Admin Panel)    │
+└────────┬─────────┘        └──────────────────┘        └─────────────────┘
+         │                                                          
+         │ chat context (produk + ongkir realtime)                 
+         ▼                                                          
+┌─────────────────┐                                                 
+│   Groq AI API    │                                                 
+│  (gpt-oss-20b)   │                                                 
+└─────────────────┘
+```
+
+Tidak ada server middleware. Browser customer & browser admin **sama-sama klien langsung** ke Firebase — itu sebabnya semuanya realtime tanpa delay dan tanpa biaya server bulanan.
 
 ---
 
 ## 📁 Struktur Proyek
 
 ```
-📦 riksan-dropship
+📦 Riksan-Dropshiper
 ├── 🏠 index.html          → Halaman toko (storefront)
 ├── ⚡ app.js               → Logic storefront: katalog, cart, checkout, AI chat, akun
 ├── 🔐 admin.html           → Panel admin
@@ -136,18 +177,18 @@ Clone → isi config → push → live. Sesederhana itu.
    → Firestore → collection "admins" → Document ID = UID user tsb
 6. (Opsional) Ambil API key gratis di console.groq.com/keys
    → aktifkan AI chat dari menu Pengaturan Toko
-7. Push ke GitHub → aktifkan GitHub Pages → 🎉 live
+7. Push ke GitHub → Settings → Pages → aktifkan → 🎉 live
 ```
 
-Seed data produk otomatis terisi begitu Firestore masih kosong saat admin panel pertama kali dibuka — gak perlu isi manual satu-satu dari nol.
+Seed data produk otomatis terisi begitu Firestore masih kosong saat admin panel pertama kali dibuka.
 
 ---
 
 ## 🔒 Keamanan (Firestore Rules)
 
 | Collection | Baca | Tulis |
-|---|---|---|
-| `products`, `banners`, `settings`, `ongkir`, `testimoni` | 🌍 Publik | 🔐 Admin saja |
+|---|:---:|:---:|
+| `products` `banners` `settings` `ongkir` `testimoni` | 🌍 Publik | 🔐 Admin saja |
 | `orders` | 🔐 Admin / pemilik pesanan | ✍️ Create publik, edit admin saja |
 | `customers` | 🔐 Admin / pemilik akun | 🔐 Pemilik akun saja |
 | `admins` | 🔐 Hanya baca dokumen milik sendiri | 🚫 Tidak bisa ditulis dari client |
@@ -156,10 +197,29 @@ Seed data produk otomatis terisi begitu Firestore masih kosong saat admin panel 
 
 ---
 
+## 🗺️ Roadmap
+
+- [x] Katalog & keranjang realtime
+- [x] Checkout via WhatsApp otomatis
+- [x] AI Shopping Assistant
+- [x] Akun customer & riwayat pesanan
+- [x] Roda Spin diskon
+- [ ] Notifikasi push untuk pesanan baru
+- [ ] Integrasi payment gateway langsung
+- [ ] Mode multi-toko (multi-tenant)
+
+---
+
 <div align="center">
 
-### 💡 Dibangun untuk pelaku dropship yang mau toko online cepat, murah, dan pintar — tanpa server, tanpa ribet.
+<br>
 
-![Footer](https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=100&section=footer)
+**⭐ Kalau proyek ini membantu, jangan lupa kasih star di repo-nya!**
+
+<img src="https://komarev.com/ghpvc/?username=riksan762-creator&label=Profile+Views&color=E63E7F&style=for-the-badge" />
+
+<br><br>
+
+![Footer](https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=120&section=footer)
 
 </div>

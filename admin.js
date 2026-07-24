@@ -7,7 +7,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, getDoc, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, getDoc, getDocs, writeBatch, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js";
 
 const app = initializeApp(firebaseConfig);
@@ -304,13 +304,14 @@ function listenOrders() {
       orders = snap.docs.map(d => ({ id: d.id, ...d.data() }))
         .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
       renderPesananTable();
+      renderPendapatanCard();
     },
     (err) => {
       console.error(err);
       const msg = firebaseErrorMessage(err);
       showToast(`Gagal memuat pesanan: ${msg}`);
       const tbody = document.getElementById("pesananTableBody");
-      if (tbody) tbody.innerHTML = `<tr class="empty-row"><td colspan="6" style="color:#c0392b;">⚠️ ${msg}</td></tr>`;
+      if (tbody) tbody.innerHTML = `<tr class="empty-row"><td colspan="7" style="color:#c0392b;">⚠️ ${msg}</td></tr>`;
     }
   );
 }
@@ -402,6 +403,24 @@ function renderUntungCard() {
     totalUntung += (p.harga - modal) * Number(p.terjual || 0);
   });
   el.textContent = adaData ? rupiah(totalUntung) : "Belum ada data";
+}
+
+function renderPendapatanCard() {
+  const pendapatanEl = document.getElementById("statPendapatan");
+  const menungguEl = document.getElementById("statMenunggu");
+  const dikirimEl = document.getElementById("statDikirim");
+  if (!pendapatanEl) return;
+
+  // Cuma pesanan yang statusnya udah "Sudah Dibayar"/"Dikirim"/"Selesai" yang dihitung
+  // sebagai pendapatan beneran — bukan sekadar semua yang pernah checkout.
+  const lunasStatuses = ["Sudah Dibayar", "Dikirim", "Selesai"];
+  const totalPendapatan = orders
+    .filter(o => lunasStatuses.includes(o.status || "Menunggu Pembayaran"))
+    .reduce((a, o) => a + Number(o.total || 0), 0);
+
+  pendapatanEl.textContent = rupiah(totalPendapatan);
+  if (menungguEl) menungguEl.textContent = orders.filter(o => (o.status || "Menunggu Pembayaran") === "Menunggu Pembayaran").length;
+  if (dikirimEl) dikirimEl.textContent = orders.filter(o => o.status === "Dikirim").length;
 }
 
 function renderKategoriFilter() {
@@ -908,16 +927,19 @@ async function deleteOngkir(id) {
 }
 
 /* ---------- riwayat pesanan ---------- */
+const ORDER_STATUSES = ["Menunggu Pembayaran", "Sudah Dibayar", "Dikirim", "Selesai", "Dibatalkan"];
+
 function renderPesananTable() {
   const tbody = document.getElementById("pesananTableBody");
   if (!tbody) return;
   if (orders.length === 0) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="6">Belum ada pesanan masuk. Otomatis tercatat begitu ada customer checkout.</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="7">Belum ada pesanan masuk. Otomatis tercatat begitu ada customer checkout.</td></tr>`;
     return;
   }
   tbody.innerHTML = orders.map(o => {
     const tgl = o.createdAt ? new Date(o.createdAt).toLocaleString("id-ID", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "-";
     const jumlahItem = (o.items || []).reduce((a, it) => a + Number(it.qty || 0), 0);
+    const status = o.status || "Menunggu Pembayaran";
     return `
     <tr>
       <td>${tgl}</td>
@@ -925,10 +947,26 @@ function renderPesananTable() {
       <td>${jumlahItem} item</td>
       <td>${rupiah(o.total)}</td>
       <td>${o.voucher ? `🎁 ${o.voucher.code}` : "-"}</td>
+      <td>
+        <select class="status-select" data-status-order="${o.id}">
+          ${ORDER_STATUSES.map(s => `<option value="${s}" ${s === status ? "selected" : ""}>${s}</option>`).join("")}
+        </select>
+      </td>
       <td><button class="edit" data-detail-pesanan="${o.id}">Detail</button></td>
     </tr>`;
   }).join("");
   tbody.querySelectorAll("[data-detail-pesanan]").forEach(bt => bt.addEventListener("click", () => openPesananDetail(bt.dataset.detailPesanan)));
+  tbody.querySelectorAll("[data-status-order]").forEach(sel => sel.addEventListener("change", (e) => updateOrderStatus(sel.dataset.statusOrder, e.target.value)));
+}
+
+async function updateOrderStatus(orderId, newStatus) {
+  try {
+    await updateDoc(doc(db, "orders", orderId), { status: newStatus });
+    showToast(`Status pesanan diubah jadi "${newStatus}"`);
+  } catch (err) {
+    console.error(err);
+    showToast(firebaseErrorMessage(err));
+  }
 }
 
 function openPesananDetail(id) {

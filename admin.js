@@ -113,6 +113,8 @@ let customerSearch = "";
 let testimoni = [];
 let editingTestimoniId = null;
 let unsubTestimoni = null;
+let productCosts = {};
+let unsubProductCosts = null;
 let settings = { ...DEFAULT_SETTINGS };
 let editingId = null;
 let editingBannerId = null;
@@ -167,6 +169,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (unsubOrders) { unsubOrders(); unsubOrders = null; }
       if (unsubCustomers) { unsubCustomers(); unsubCustomers = null; }
       if (unsubTestimoni) { unsubTestimoni(); unsubTestimoni = null; }
+      if (unsubProductCosts) { unsubProductCosts(); unsubProductCosts = null; }
     }
   });
 
@@ -198,6 +201,7 @@ document.addEventListener("DOMContentLoaded", () => {
     listenOrders();
     listenCustomers();
     listenTestimoni();
+    listenProductCosts();
     await loadSettings();
     if (!boundOnce) { bindShellUI(); boundOnce = true; }
   }
@@ -248,6 +252,7 @@ function listenProducts() {
       renderStokKritis();
       renderTopProduk();
       renderTestimoniTable();
+      renderUntungCard();
     },
     (err) => {
       console.error(err);
@@ -347,6 +352,24 @@ function listenTestimoni() {
   );
 }
 
+/* ---------- realtime harga modal (rahasia, admin-only) ---------- */
+function listenProductCosts() {
+  if (unsubProductCosts) unsubProductCosts();
+  unsubProductCosts = onSnapshot(
+    collection(db, "productCosts"),
+    (snap) => {
+      productCosts = {};
+      snap.docs.forEach(d => { productCosts[d.id] = d.data(); });
+      renderTable();
+      renderUntungCard();
+    },
+    (err) => {
+      console.error(err);
+      showToast(`Gagal memuat data harga modal: ${firebaseErrorMessage(err)}`);
+    }
+  );
+}
+
 async function loadSettings() {
   try {
     const snap = await getDoc(doc(db, "settings", "store"));
@@ -365,6 +388,20 @@ function renderStats() {
   document.getElementById("statHabis").textContent = products.filter(p => Number(p.stok) <= 0).length;
   document.getElementById("statKategori").textContent = new Set(products.map(p => p.kategori)).size;
   document.getElementById("waNumberDisplay").textContent = "+" + (settings.noWA || "-");
+}
+
+function renderUntungCard() {
+  const el = document.getElementById("statUntung");
+  if (!el) return;
+  let totalUntung = 0;
+  let adaData = false;
+  products.forEach(p => {
+    const modal = productCosts[p.id]?.hargaModal;
+    if (modal === undefined || modal === null) return;
+    adaData = true;
+    totalUntung += (p.harga - modal) * Number(p.terjual || 0);
+  });
+  el.textContent = adaData ? rupiah(totalUntung) : "Belum ada data";
 }
 
 function renderKategoriFilter() {
@@ -426,11 +463,19 @@ function renderTable() {
   if (!tbody) return;
   const list = filteredList();
   if (list.length === 0) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="7">Belum ada produk. Klik "Tambah Produk" untuk mulai mengisi katalog.</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="8">Belum ada produk. Klik "Tambah Produk" untuk mulai mengisi katalog.</td></tr>`;
     return;
   }
   tbody.innerHTML = list.map(p => {
     const habis = Number(p.stok) <= 0;
+    const modal = productCosts[p.id]?.hargaModal;
+    const marginHtml = (modal !== undefined && modal !== null)
+      ? (() => {
+          const margin = p.harga - modal;
+          const persen = modal > 0 ? Math.round((margin / modal) * 100) : 0;
+          return `<span style="color:${margin >= 0 ? 'var(--teal)' : '#c0392b'};font-weight:700;">${rupiah(margin)}</span><br><span style="font-size:10.5px;color:var(--ink-soft);">${persen}%</span>`;
+        })()
+      : `<span style="color:var(--ink-soft);font-size:11px;">belum diisi</span>`;
     return `
     <tr>
       <td>
@@ -441,6 +486,7 @@ function renderTable() {
       </td>
       <td>${p.kategori}</td>
       <td>${p.hargaCoret ? `<span style="text-decoration:line-through;color:var(--ink-soft);font-size:11px;display:block;">${rupiah(p.hargaCoret)}</span>${rupiah(p.harga)}` : rupiah(p.harga)}</td>
+      <td>${marginHtml}</td>
       <td>${p.stok}</td>
       <td>${p.rating ? `⭐ ${Number(p.rating).toFixed(1)}` : "-"}<br><span style="font-size:11px;color:var(--ink-soft);">Terjual ${p.terjual || 0}</span></td>
       <td><span class="pill ${habis ? "habis" : "ready"}">${habis ? "Stok Habis" : "Ready"}</span></td>
@@ -465,6 +511,7 @@ function openProductModal(id) {
   document.getElementById("fNama").value = p?.nama || "";
   populateKategoriSelect(p?.kategori || "");
   document.getElementById("fHarga").value = p?.harga || "";
+  document.getElementById("fHargaModal").value = productCosts[id]?.hargaModal ?? "";
   document.getElementById("fHargaCoret").value = p?.hargaCoret || "";
   document.getElementById("fStok").value = p?.stok ?? "";
   document.getElementById("fRating").value = p?.rating ?? "";
@@ -499,6 +546,8 @@ async function saveProductForm(e) {
   const nama = document.getElementById("fNama").value.trim();
   const kategori = document.getElementById("fKategori").value.trim();
   const harga = Number(document.getElementById("fHarga").value);
+  const hargaModalRaw = document.getElementById("fHargaModal").value.trim();
+  const hargaModal = hargaModalRaw ? Number(hargaModalRaw) : null;
   const hargaCoretRaw = document.getElementById("fHargaCoret").value.trim();
   const hargaCoret = hargaCoretRaw ? Number(hargaCoretRaw) : null;
   const stok = Number(document.getElementById("fStok").value);
@@ -514,6 +563,10 @@ async function saveProductForm(e) {
   }
   if (hargaCoret !== null && (isNaN(hargaCoret) || hargaCoret <= harga)) {
     showToast("Harga coret harus lebih besar dari harga jual");
+    return;
+  }
+  if (hargaModal !== null && (isNaN(hargaModal) || hargaModal < 0)) {
+    showToast("Harga modal tidak valid");
     return;
   }
   if (rating !== null && (isNaN(rating) || rating < 0 || rating > 5)) {
@@ -533,6 +586,11 @@ async function saveProductForm(e) {
 
   try {
     await setDoc(doc(db, "products", id), data);
+    if (hargaModal !== null) {
+      await setDoc(doc(db, "productCosts", id), { hargaModal });
+    } else {
+      await deleteDoc(doc(db, "productCosts", id)).catch(() => {});
+    }
     showToast(editingId ? "Produk berhasil diperbarui" : "Produk baru ditambahkan");
     closeProductModal();
   } catch (err) {
@@ -549,6 +607,7 @@ async function deleteProduct(id) {
   if (!confirm(`Hapus produk "${p.nama}"? Tindakan ini tidak bisa dibatalkan.`)) return;
   try {
     await deleteDoc(doc(db, "products", id));
+    await deleteDoc(doc(db, "productCosts", id)).catch(() => {});
     showToast("Produk dihapus");
   } catch (err) {
     console.error(err);

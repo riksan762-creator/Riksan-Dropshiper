@@ -570,6 +570,7 @@ function logOrder(cart, total, buyer, spin) {
       buyer: { name: buyer.name || "", city: buyer.city || "", address: buyer.address || "" },
       buyerUid: currentUser?.uid || null,
       voucher: (spin && spin.type !== "none") ? { code: spin.code, label: spin.full } : null,
+      status: "Menunggu Pembayaran",
       createdAt: new Date().toISOString(),
     }).catch(err => console.error("Gagal mencatat riwayat pesanan:", err));
   } catch (err) {
@@ -940,6 +941,51 @@ function listenMyOrders(uid) {
   );
 }
 
+function orderStatusMeta(status) {
+  const map = {
+    "Menunggu Pembayaran": { emoji: "⏳", className: "st-pending" },
+    "Sudah Dibayar": { emoji: "✅", className: "st-paid" },
+    "Dikirim": { emoji: "🚚", className: "st-shipped" },
+    "Selesai": { emoji: "🎉", className: "st-done" },
+    "Dibatalkan": { emoji: "❌", className: "st-cancel" },
+  };
+  return map[status] || map["Menunggu Pembayaran"];
+}
+
+const TRACK_STEPS = [
+  { key: "Menunggu Pembayaran", label: "Dibuat", emoji: "📦" },
+  { key: "Sudah Dibayar", label: "Dibayar", emoji: "💰" },
+  { key: "Dikirim", label: "Dikirim", emoji: "🚚" },
+  { key: "Selesai", label: "Selesai", emoji: "🎉" },
+];
+
+function buildTrackingHTML(status) {
+  if (status === "Dibatalkan") {
+    return `<div class="track-cancelled">❌ Pesanan ini dibatalkan.</div>`;
+  }
+  const stepIdx = Math.max(0, TRACK_STEPS.findIndex(s => s.key === status));
+  const fillPercent = (stepIdx / (TRACK_STEPS.length - 1)) * 100;
+  const isMoving = status === "Dikirim";
+
+  const dots = TRACK_STEPS.map((s, i) => `
+    <div class="track-step ${i <= stepIdx ? "active" : ""}">
+      <div class="track-dot">${s.emoji}</div>
+      <div class="track-label">${s.label}</div>
+    </div>
+  `).join("");
+
+  return `
+    <div class="tracking-box">
+      <div class="track-line-wrap">
+        <div class="track-line-bg"></div>
+        <div class="track-line-fill" style="width:${fillPercent}%;"></div>
+        <div class="track-truck ${isMoving ? "moving" : ""}" style="left:${fillPercent}%;">🚚</div>
+      </div>
+      <div class="track-steps">${dots}</div>
+    </div>
+  `;
+}
+
 function renderMyOrders(myOrders) {
   const box = document.getElementById("myOrdersList");
   if (!box) return;
@@ -950,13 +996,30 @@ function renderMyOrders(myOrders) {
   box.innerHTML = myOrders.map(o => {
     const tgl = o.createdAt ? new Date(o.createdAt).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }) : "-";
     const itemsTxt = (o.items || []).map(it => `${it.nama} x${it.qty}`).join(", ");
+    const status = o.status || "Menunggu Pembayaran";
+    const meta = orderStatusMeta(status);
     return `
     <div class="my-order-card">
       <div class="mo-top"><span>${tgl}</span>${o.voucher ? `<span>🎁 ${o.voucher.code}</span>` : ""}</div>
       <div class="mo-items">${itemsTxt}</div>
+      <button type="button" class="mo-status-btn ${meta.className}" data-track-toggle="${o.id}">
+        <span>${meta.emoji} ${status}</span>
+        <span class="mo-track-arrow">🚚 Lacak ▾</span>
+      </button>
+      <div class="mo-tracking" id="track-${o.id}" style="display:none;">${buildTrackingHTML(status)}</div>
       <div class="mo-total">${rupiah(o.total)}</div>
     </div>`;
   }).join("");
+
+  box.querySelectorAll("[data-track-toggle]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const panel = document.getElementById(`track-${btn.dataset.trackToggle}`);
+      if (!panel) return;
+      const isOpen = panel.style.display === "block";
+      panel.style.display = isOpen ? "none" : "block";
+      btn.querySelector(".mo-track-arrow").textContent = isOpen ? "🚚 Lacak ▾" : "🚚 Tutup ▴";
+    });
+  });
 }
 
 async function handleRegister(e) {

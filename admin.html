@@ -15,6 +15,8 @@
   .kategori-chip button{background:#1B1030;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:12px;line-height:1;cursor:pointer;}
   .banner-thumb{width:70px;height:40px;object-fit:cover;border-radius:6px;border:1px solid #D8CBB0;display:block;}
   .status-select{font-size:11.5px;padding:5px 8px;border-radius:8px;border:1px solid #D8CBB0;background:#fff;cursor:pointer;max-width:150px;}
+  .forgot-pass-link{background:none;border:none;color:#B8215C;font-size:12.5px;text-decoration:underline;cursor:pointer;padding:0;margin:-8px 0 12px;display:block;text-align:right;}
+  .login-success{color:#12897A;font-size:13px;margin:4px 0;}
   .stok-kritis-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px dashed #D8CBB0;font-size:13.5px;}
   .stok-kritis-row:last-child{border-bottom:none;}
   .bar-row{display:grid;grid-template-columns:120px 1fr 34px;align-items:center;gap:10px;padding:7px 0;font-size:12.5px;}
@@ -43,10 +45,24 @@
         <label for="loginPass">Password</label>
         <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" required>
       </div>
+      <button type="button" class="forgot-pass-link" id="openForgotPassBtn">Lupa password?</button>
       <p class="login-error" id="loginError"></p>
       <button class="btn-block" type="submit">Masuk ke Dashboard</button>
     </form>
-    <div class="login-hint">
+
+    <form id="forgotPassForm" style="display:none;">
+      <p style="font-size:12.5px;color:#3A2C52;margin:0 0 12px;">Masukin email admin kamu, nanti dikirimin link buat bikin password baru.</p>
+      <div class="field">
+        <label for="forgotPassEmail">Email Admin</label>
+        <input type="email" id="forgotPassEmail" placeholder="namamu@gmail.com" required>
+      </div>
+      <p class="login-error" id="forgotPassError"></p>
+      <p class="login-success" id="forgotPassSuccess"></p>
+      <button class="btn-block" type="submit">Kirim Link Reset</button>
+      <button type="button" class="forgot-pass-link" id="backToLoginBtn">← Balik ke Login</button>
+    </form>
+
+    <div class="login-hint" id="loginHint">
       Login pakai akun yang kamu buat di <b>Firebase Console → Authentication → Users</b>.<br>
       Belum punya akun? Tambahkan dulu di sana sebelum login ke sini.
     </div>

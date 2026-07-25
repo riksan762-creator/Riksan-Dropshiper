@@ -6,7 +6,7 @@
    ========================================================= */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, getDoc, getDocs, writeBatch, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js";
 
@@ -187,6 +187,35 @@ document.addEventListener("DOMContentLoaded", () => {
       err.classList.add("show");
     } finally {
       if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = "Masuk ke Dashboard"; }
+    }
+  });
+
+  document.getElementById("openForgotPassBtn")?.addEventListener("click", () => {
+    loginForm.style.display = "none";
+    document.getElementById("loginHint").style.display = "none";
+    document.getElementById("forgotPassForm").style.display = "block";
+    document.getElementById("forgotPassEmail").value = document.getElementById("loginUser").value;
+    document.getElementById("forgotPassError").classList.remove("show");
+    document.getElementById("forgotPassSuccess").textContent = "";
+  });
+  document.getElementById("backToLoginBtn")?.addEventListener("click", () => {
+    document.getElementById("forgotPassForm").style.display = "none";
+    document.getElementById("loginHint").style.display = "block";
+    loginForm.style.display = "block";
+  });
+  document.getElementById("forgotPassForm")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("forgotPassEmail").value.trim();
+    const errEl = document.getElementById("forgotPassError");
+    const okEl = document.getElementById("forgotPassSuccess");
+    errEl.classList.remove("show");
+    okEl.textContent = "";
+    try {
+      await sendPasswordResetEmail(auth, email);
+      okEl.textContent = "Link reset udah dikirim! Cek inbox (atau folder spam) email admin kamu.";
+    } catch (err) {
+      errEl.textContent = "Gagal kirim email reset — pastikan email-nya bener dan udah terdaftar.";
+      errEl.classList.add("show");
     }
   });
 

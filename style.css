@@ -8,20 +8,20 @@
 @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 :root{
-  --ink:#1B1030;
-  --ink-soft:#3A2C52;
-  --paper:#FBF6EC;
-  --paper-dim:#F1E9D8;
-  --magenta:#E63E7F;
-  --magenta-deep:#B8215C;
-  --lime:#C6FF3D;
-  --teal:#12897A;
-  --gold:#D4AF37;
-  --gold-soft:#F1DFA0;
-  --line:#D8CBB0;
-  --shadow: 0 8px 24px -10px rgba(27,16,48,.28);
-  --shadow-lg: 0 20px 48px -16px rgba(27,16,48,.42);
-  --glow-gold: 0 0 0 1px rgba(212,175,55,.3), 0 14px 32px -14px rgba(212,175,55,.35);
+  --ink:#191322;
+  --ink-soft:#473C58;
+  --paper:#FBF7F1;
+  --paper-dim:#F1E8DB;
+  --magenta:#FF4667;
+  --magenta-deep:#C4184A;
+  --lime:#BFE86B;
+  --teal:#0D8A78;
+  --gold:#D4A73E;
+  --gold-soft:#EFDFB6;
+  --line:#DFD2BE;
+  --shadow: 0 8px 24px -10px rgba(25,19,34,.28);
+  --shadow-lg: 0 20px 48px -16px rgba(25,19,34,.42);
+  --glow-gold: 0 0 0 1px rgba(212,167,62,.3), 0 14px 32px -14px rgba(212,167,62,.35);
 
   --font-display:'Archivo Black', sans-serif;
   --font-body:'Space Grotesk', sans-serif;
@@ -139,7 +139,7 @@ header.site{
 .account-btn:hover{border-color:var(--magenta);color:var(--magenta-deep);}
 
 .account-overlay{
-  position:fixed;inset:0;background:rgba(27,16,48,.65);
+  position:fixed;inset:0;background:rgba(25,19,34,.65);
   display:none;align-items:center;justify-content:center;z-index:99;padding:20px;
 }
 .account-overlay.show{display:flex;}
@@ -157,6 +157,12 @@ header.site{
 .account-tab.active{background:var(--ink);color:#fff;}
 .account-form{display:flex;flex-direction:column;gap:12px;}
 .account-error{color:#c0392b;font-size:12.5px;margin:-4px 0 0;min-height:1em;}
+.account-success{color:#12897A;font-size:12.5px;margin:-4px 0 0;}
+.forgot-pass-link{
+  background:none;border:none;color:var(--magenta-deep);font-size:12.5px;
+  text-decoration:underline;cursor:pointer;padding:0;margin-top:-6px;
+  text-align:right;align-self:flex-end;
+}
 .my-orders-head{
   font-family:var(--font-mono);font-weight:700;font-size:12.5px;
   text-transform:uppercase;letter-spacing:.03em;color:var(--ink-soft);
@@ -463,7 +469,7 @@ header.site{
 }
 .card{
   background:#fff;
-  border:1.5px solid rgba(27,16,48,.85);
+  border:1.5px solid rgba(25,19,34,.85);
   border-radius:18px;
   overflow:hidden;
   display:flex;flex-direction:column;
@@ -492,7 +498,7 @@ header.site{
   font-family:var(--font-mono);font-size:11px;font-weight:700;
   padding:4px 9px;border-radius:999px;
   background:var(--gold);color:var(--ink);
-  border:1px solid rgba(27,16,48,.15);
+  border:1px solid rgba(25,19,34,.15);
 }
 .card .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1;}
 .card .kategori{font-family:var(--font-mono);font-size:10.5px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;}
@@ -545,7 +551,7 @@ footer.site .f-links{display:flex;gap:18px;font-size:13px;flex-wrap:wrap;}
 footer.site .f-links a{text-decoration:none;border-bottom:1px dashed var(--ink-soft);}
 
 .overlay{
-  position:fixed;inset:0;background:rgba(27,16,48,.55);
+  position:fixed;inset:0;background:rgba(25,19,34,.55);
   opacity:0;pointer-events:none;transition:opacity .25s ease;z-index:90;
 }
 .overlay.show{opacity:1;pointer-events:auto;}
@@ -631,7 +637,7 @@ footer.site .f-links a{text-decoration:none;border-bottom:1px dashed var(--ink-s
 .checkout-divider::before, .checkout-divider::after{content:"";flex:1;height:1px;background:var(--line);}
 
 .modal-overlay{
-  position:fixed;inset:0;background:rgba(27,16,48,.6);
+  position:fixed;inset:0;background:rgba(25,19,34,.6);
   display:none;align-items:center;justify-content:center;z-index:99;padding:20px;
 }
 .modal-overlay.show{display:flex;}
@@ -698,7 +704,7 @@ footer.site .f-links a{text-decoration:none;border-bottom:1px dashed var(--ink-s
 
 /* ---- AI Chat: modal ---- */
 .ai-chat-overlay{
-  position:fixed;inset:0;background:rgba(27,16,48,.65);
+  position:fixed;inset:0;background:rgba(25,19,34,.65);
   display:none;align-items:center;justify-content:center;z-index:100;padding:16px;
 }
 .ai-chat-overlay.show{display:flex;}
@@ -804,7 +810,7 @@ footer.site .f-links a{text-decoration:none;border-bottom:1px dashed var(--ink-s
 
 /* ---- Spin wheel: modal ---- */
 .spin-overlay{
-  position:fixed;inset:0;background:rgba(27,16,48,.65);
+  position:fixed;inset:0;background:rgba(25,19,34,.65);
   display:none;align-items:center;justify-content:center;z-index:99;padding:20px;
 }
 .spin-overlay.show{display:flex;}

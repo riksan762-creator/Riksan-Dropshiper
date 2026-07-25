@@ -8,7 +8,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, doc, onSnapshot, addDoc, setDoc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { firebaseConfig } from "./firebase-config.js";
 
 const app = initializeApp(firebaseConfig);
@@ -1055,6 +1055,22 @@ async function handleRegister(e) {
   closeAccountModal();
 }
 
+async function handleForgotPassword(e) {
+  e.preventDefault();
+  const email = document.getElementById("forgotPassEmail").value.trim();
+  const errEl = document.getElementById("forgotPassError");
+  const okEl = document.getElementById("forgotPassSuccess");
+  errEl.textContent = "";
+  okEl.textContent = "";
+
+  try {
+    await sendPasswordResetEmail(auth, email);
+    okEl.textContent = "Link reset udah dikirim! Cek inbox (atau folder spam) email kamu.";
+  } catch (err) {
+    errEl.textContent = translateAuthError(err);
+  }
+}
+
 async function handleLogin(e) {
   e.preventDefault();
   const email = document.getElementById("accLoginEmail").value.trim();
@@ -1095,8 +1111,22 @@ function bindAccountAuth() {
       const isLogin = tab.dataset.tab === "login";
       document.getElementById("accountLoginForm").style.display = isLogin ? "flex" : "none";
       document.getElementById("accountRegisterForm").style.display = isLogin ? "none" : "flex";
+      document.getElementById("forgotPassForm").style.display = "none";
     });
   });
+
+  document.getElementById("openForgotPassBtn")?.addEventListener("click", () => {
+    document.getElementById("accountLoginForm").style.display = "none";
+    document.getElementById("forgotPassForm").style.display = "flex";
+    document.getElementById("forgotPassEmail").value = document.getElementById("accLoginEmail").value;
+    document.getElementById("forgotPassError").textContent = "";
+    document.getElementById("forgotPassSuccess").textContent = "";
+  });
+  document.getElementById("backToLoginBtn")?.addEventListener("click", () => {
+    document.getElementById("forgotPassForm").style.display = "none";
+    document.getElementById("accountLoginForm").style.display = "flex";
+  });
+  document.getElementById("forgotPassForm")?.addEventListener("submit", handleForgotPassword);
 
   document.getElementById("accountLoginForm")?.addEventListener("submit", handleLogin);
   document.getElementById("accountRegisterForm")?.addEventListener("submit", handleRegister);

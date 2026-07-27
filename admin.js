@@ -420,6 +420,156 @@ function renderStats() {
   document.getElementById("waNumberDisplay").textContent = "+" + (settings.noWA || "-");
 }
 
+/* ---------- AI Business Advisor ---------- */
+function buildBusinessDataSummary() {
+  const totalProduk = products.length;
+  const stokHabis = products.filter(p => Number(p.stok) <= 0);
+  const stokMenipis = products.filter(p => Number(p.stok) > 0 && Number(p.stok) <= 5);
+  const produkTerlaris = [...products].sort((a, b) => (Number(b.terjual) || 0) - (Number(a.terjual) || 0)).slice(0, 5);
+
+  const produkList = products.map(p => {
+    const modal = productCosts[p.id]?.hargaModal;
+    const marginTxt = (modal !== undefined && modal !== null) ? `margin ${rupiah(p.harga - modal)}` : "margin belum diisi";
+    return `- ${p.nama} | kategori ${p.kategori} | harga ${rupiah(p.harga)} | stok ${p.stok} | terjual ${p.terjual || 0} | ${marginTxt}`;
+  }).join("\n");
+
+  const lunasStatuses = ["Sudah Dibayar", "Dikirim", "Selesai"];
+  const totalPendapatan = orders.filter(o => lunasStatuses.includes(o.status || "Menunggu Pembayaran")).reduce((a, o) => a + Number(o.total || 0), 0);
+  const pesananMenunggu = orders.filter(o => (o.status || "Menunggu Pembayaran") === "Menunggu Pembayaran").length;
+  const totalPesanan = orders.length;
+
+  return `DATA TOKO SAAT INI:
+
+Total produk: ${totalProduk}
+Stok habis: ${stokHabis.length} produk (${stokHabis.map(p => p.nama).join(", ") || "-"})
+Stok menipis (≤5): ${stokMenipis.length} produk (${stokMenipis.map(p => `${p.nama}: ${p.stok}`).join(", ") || "-"})
+
+Daftar lengkap produk:
+${produkList}
+
+Total pesanan tercatat: ${totalPesanan}
+Pesanan menunggu pembayaran: ${pesananMenunggu}
+Total pendapatan (status lunas/dikirim/selesai): ${rupiah(totalPendapatan)}
+Total testimoni: ${testimoni.length}`;
+}
+
+/* ---------- AI: generate deskripsi produk dari foto (vision) ---------- */
+async function generateDeskripsiFromPhoto() {
+  const btn = document.getElementById("btnGenerateDeskripsi");
+  const hint = document.getElementById("generateDeskripsiHint");
+  const gambar = document.getElementById("fGambar").value.trim();
+  const namaProduk = document.getElementById("fNama").value.trim();
+
+  if (!settings.groqApiKey) {
+    showToast("Isi dulu Groq API Key di Pengaturan Toko");
+    return;
+  }
+  if (!gambar) {
+    showToast("Upload foto produk dulu sebelum generate deskripsi");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "✨ Menganalisa foto...";
+  hint.style.display = "none";
+
+  try {
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${settings.groqApiKey}`,
+      },
+      body: JSON.stringify({
+        model: "qwen/qwen3.6-27b",
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: `Lihat foto produk ini${namaProduk ? ` (nama produk: "${namaProduk}")` : ""}. Tulis deskripsi jualan yang menarik dalam Bahasa Indonesia buat toko online, 2-3 kalimat, sebutin ciri fisik/warna/bahan yang keliatan di foto kalau relevan, gaya santai tapi meyakinkan buat calon pembeli. Jangan pakai tanda kutip di jawabanmu, langsung teks deskripsinya aja.`,
+              },
+              { type: "image_url", image_url: { url: gambar } },
+            ],
+          },
+        ],
+        max_completion_tokens: 300,
+        temperature: 0.7,
+      }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      showToast(`Gagal generate: ${data?.error?.message || "error tidak diketahui"}`);
+      return;
+    }
+
+    const result = data?.choices?.[0]?.message?.content?.trim();
+    if (result) {
+      document.getElementById("fDeskripsi").value = result;
+      hint.textContent = "✅ Deskripsi ke-generate dari foto — boleh diedit lagi sebelum disimpan.";
+      hint.style.display = "block";
+      showToast("Deskripsi berhasil di-generate AI");
+    } else {
+      showToast("AI tidak memberikan hasil, coba lagi");
+    }
+  } catch (err) {
+    console.error(err);
+    showToast("Gagal menghubungi AI — cek koneksi internet");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "✨ Generate dari Foto (AI)";
+  }
+}
+
+async function runBusinessAnalysis() {
+  const box = document.getElementById("analisaBisnisBox");
+  const btn = document.getElementById("btnAnalisaBisnis");
+  if (!settings.groqApiKey) {
+    box.innerHTML = `<p class="analisa-error">⚠️ Isi dulu Groq API Key di menu Pengaturan Toko sebelum pakai fitur ini.</p>`;
+    return;
+  }
+
+  btn.disabled = true;
+  box.innerHTML = `<div class="analisa-loading"><span class="ai-typing-dots"><span></span><span></span><span></span></span> Lagi nganalisa data toko kamu...</div>`;
+
+  const systemPrompt = `Kamu adalah konsultan bisnis buat toko dropship online. Dikasih data toko, kasih analisa singkat dan rekomendasi KONKRET dan actionable dalam Bahasa Indonesia santai tapi profesional. Fokus ke: produk mana yang perlu direstock/diperhatiin, produk margin tipis/tebal, tren penjualan, dan saran taktis buat naikin penjualan. Format pakai poin-poin singkat (pakai tanda "•"), maksimal 8 poin, jangan bertele-tele. Jangan basa-basi pembuka, langsung ke poin-poinnya.`;
+
+  try {
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${settings.groqApiKey}`,
+      },
+      body: JSON.stringify({
+        model: settings.aiModel || "openai/gpt-oss-20b",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: buildBusinessDataSummary() },
+        ],
+        max_completion_tokens: 700,
+        temperature: 0.5,
+      }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      box.innerHTML = `<p class="analisa-error">⚠️ ${data?.error?.message || "Gagal menghubungi AI"}</p>`;
+      return;
+    }
+
+    const result = data?.choices?.[0]?.message?.content?.trim() || "AI tidak memberikan hasil.";
+    box.innerHTML = `<div class="analisa-result">${result}</div>`;
+  } catch (err) {
+    console.error(err);
+    box.innerHTML = `<p class="analisa-error">⚠️ Gagal menghubungi AI — cek koneksi internet.</p>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 function renderUntungCard() {
   const el = document.getElementById("statUntung");
   if (!el) return;
@@ -568,6 +718,7 @@ function openProductModal(id) {
   document.getElementById("fGambar").value = p?.gambar || "";
   document.getElementById("fGambarFile").value = "";
   document.getElementById("fGambarUrl").value = (p?.gambar && p.gambar.startsWith("http")) ? p.gambar : "";
+  document.getElementById("generateDeskripsiHint").style.display = "none";
   updateImgPreview();
   document.getElementById("productModal").classList.add("show");
 }
@@ -1246,6 +1397,8 @@ function bindShellUI() {
 
   // kelola testimoni
   document.getElementById("btnAddTestimoni")?.addEventListener("click", () => openTestimoniModal(null));
+  document.getElementById("btnAnalisaBisnis")?.addEventListener("click", runBusinessAnalysis);
+  document.getElementById("btnGenerateDeskripsi")?.addEventListener("click", generateDeskripsiFromPhoto);
   document.getElementById("closeTestimoniModal")?.addEventListener("click", closeTestimoniModal);
   document.getElementById("cancelTestimoniForm")?.addEventListener("click", closeTestimoniModal);
   document.getElementById("testimoniForm")?.addEventListener("submit", saveTestimoniForm);

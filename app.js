@@ -330,7 +330,7 @@ function openModal(id) {
 function closeModal() { document.getElementById("modalOverlay").classList.remove("show"); }
 
 /* ---------- cart (tetap per-pengunjung, sessionStorage) ---------- */
-function addToCart(id) {
+function addToCart(id, silent = false) {
   const p = products.find(x => x.id === id);
   if (!p || Number(p.stok) <= 0) return;
   const cart = getCart();
@@ -342,8 +342,10 @@ function addToCart(id) {
   }
   saveCart(cart);
   renderCart();
-  showToast(`${p.nama} ditambahkan ke keranjang`);
-  openCart();
+  if (!silent) {
+    showToast(`${p.nama} ditambahkan ke keranjang`);
+    openCart();
+  }
 }
 
 function changeQty(id, delta) {
@@ -721,9 +723,9 @@ function buildProductContext() {
     const stokTxt = Number(p.stok) > 0 ? `stok ${p.stok}` : "stok habis";
     const hargaTxt = p.hargaCoret ? `${rupiah(p.harga)} (diskon dari ${rupiah(p.hargaCoret)})` : rupiah(p.harga);
     const ratingTxt = p.rating ? `, rating ${p.rating}` : "";
-    return `- ${p.nama} | kategori: ${p.kategori} | harga: ${hargaTxt} | ${stokTxt}${ratingTxt}`;
+    return `- ID:${p.id} | ${p.nama} | kategori: ${p.kategori} | harga: ${hargaTxt} | ${stokTxt}${ratingTxt}`;
   }).join("\n");
-  return `Daftar produk yang tersedia di toko:\n${list}`;
+  return `Daftar produk yang tersedia di toko (format: ID | nama | kategori | harga | stok):\n${list}`;
 }
 
 function buildOngkirContext() {
@@ -740,15 +742,44 @@ function buildSystemPrompt() {
 1. Bantu customer nemuin produk yang cocok dari katalog di bawah — kalau nanya rekomendasi, sebutkan 2-3 nama produk konkret beserta harganya.
 2. Kalau nanya ongkir, pakai tabel estimasi wilayah di bawah; kalau kotanya nggak ada di daftar, bilang jujur belum ada datanya dan sarankan tanya admin.
 3. Kalau ada produk yang harganya dicoret (diskon), sebutkan itu sebagai nilai jual.
-4. Kalau customer udah keliatan mantap mau beli, dorong dengan ramah buat masukin ke keranjang terus klik "Checkout via WhatsApp", atau coba dulu tombol 🎁 Spin buat cari kode diskon.
-5. JANGAN PERNAH mengarang nama produk, harga, atau stok yang tidak ada di daftar — kalau nggak ada datanya, bilang terus terang dan tawarkan tanya admin lewat WhatsApp.
-6. Kalau ditanya hal di luar topik toko/produk, jawab singkat lalu arahkan balik ke soal belanja.`;
+4. JANGAN PERNAH mengarang nama produk, harga, atau stok yang tidak ada di daftar — kalau nggak ada datanya, bilang terus terang dan tawarkan tanya admin lewat WhatsApp.
+5. Kalau ditanya hal di luar topik toko/produk, jawab singkat lalu arahkan balik ke soal belanja.
+
+PENTING — KEMAMPUAN KHUSUS KAMU: kamu BISA langsung nambahin produk ke keranjang customer, nggak cuma nyaranin doang. Kalau customer secara eksplisit bilang mau beli/tambahin sesuatu (misal "mau kaos item 2" atau "tambahin case HP nya"), cari produk yang PALING COCOK di katalog (cocokin nama & kategori, boleh partial match), terus di AKHIR jawaban kamu, tambahkan baris terpisah PERSIS format ini (jangan ubah formatnya, jangan kasih penjelasan tambahan setelah baris ini):
+<<<ADD_CART:[{"id":"ID_PRODUK","qty":JUMLAH}]>>>
+Bisa lebih dari satu item dalam array kalau customer minta beberapa sekaligus. Kalau stok produk itu habis, JANGAN tambahkan baris itu — kasih tau customer stoknya habis dan tawarkan produk mirip lainnya. Kalau customer cuma nanya-nanya/belum yakin, JANGAN tambahkan baris ADD_CART — tunggu sampai mereka jelas-jelas minta ditambahin.`;
   return `${base}\n\n${buildProductContext()}${buildOngkirContext()}`;
 }
 
 function matchProductsInText(text) {
   const lower = text.toLowerCase();
   return products.filter(p => p.nama && lower.includes(p.nama.toLowerCase())).slice(0, 3);
+}
+
+/* Parse & eksekusi marker <<<ADD_CART:[...]>>> dari jawaban AI, balikin { cleanText, addedItems } */
+function processAiCartAction(rawText) {
+  const match = rawText.match(/<<<ADD_CART:(\[.*?\])>>>/s);
+  if (!match) return { cleanText: rawText, addedItems: [] };
+
+  const cleanText = rawText.replace(match[0], "").trim();
+  let items = [];
+  try {
+    items = JSON.parse(match[1]);
+  } catch (err) {
+    console.error("Gagal parse ADD_CART dari AI:", err);
+    return { cleanText, addedItems: [] };
+  }
+
+  const addedItems = [];
+  items.forEach(it => {
+    const prod = products.find(p => p.id === it.id);
+    if (!prod || Number(prod.stok) <= 0) return;
+    const qty = Math.max(1, Math.min(Number(it.qty) || 1, Number(prod.stok)));
+    for (let i = 0; i < qty; i++) addToCart(prod.id, true);
+    addedItems.push({ nama: prod.nama, qty });
+  });
+
+  return { cleanText, addedItems };
 }
 
 function appendChatMessage(role, text, matchedProducts = []) {
@@ -780,6 +811,17 @@ function appendChatMessage(role, text, matchedProducts = []) {
   box.appendChild(wrap);
   box.scrollTop = box.scrollHeight;
   return wrap;
+}
+
+function appendCartActionMessage(addedItems) {
+  const box = document.getElementById("aiChatMessages");
+  if (!box || addedItems.length === 0) return;
+  const wrap = document.createElement("div");
+  wrap.className = "ai-msg ai-msg-system";
+  const list = addedItems.map(it => `${it.qty}x ${it.nama}`).join(", ");
+  wrap.innerHTML = `✅ <b>Otomatis ditambahin ke keranjang:</b> ${list}`;
+  box.appendChild(wrap);
+  box.scrollTop = box.scrollHeight;
 }
 
 function appendLoadingMessage() {
@@ -833,8 +875,10 @@ async function sendAIMessage(quickText) {
     }
 
     const reply = data?.choices?.[0]?.message?.content?.trim() || "Maaf, aku belum bisa jawab itu sekarang.";
-    const matched = matchProductsInText(reply);
-    appendChatMessage("bot", reply, matched);
+    const { cleanText, addedItems } = processAiCartAction(reply);
+    const matched = matchProductsInText(cleanText);
+    appendChatMessage("bot", cleanText, matched);
+    if (addedItems.length > 0) appendCartActionMessage(addedItems);
     aiChatHistory.push({ role: "assistant", content: reply });
   } catch (err) {
     console.error(err);

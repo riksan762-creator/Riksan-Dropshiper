@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=800&size=34&duration=3000&pause=100000&repeat=false&color=00F5FF&center=true&vCenter=true&width=650&lines=RIKSAN+DEVELOPER" alt="Riksan Developer" />
+![Header](https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=240&section=header&text=RIKSAN%20DEVELOPER&fontSize=48&fontColor=fff&animation=fadeIn&fontAlignY=36&desc=Serverless%20Realtime%20Commerce%20Engine%20%C2%B7%20AI-Augmented&descAlignY=58&descSize=16)
 
 <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=500&size=15&duration=3000&pause=1200&color=D4AF37&center=true&vCenter=true&width=650&lines=Serverless+%C2%B7+Realtime+%C2%B7+AI-Augmented+Commerce+Engine" />
 

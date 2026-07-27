@@ -1,10 +1,22 @@
 <div align="center">
 
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=800&size=38&duration=4000&pause=100000&repeat=false&color=D4AF37,00F5FF,E63E7F,39FF14,FFD700&center=true&vCenter=true&width=700&lines=RIKSAN+DEVELOPER" alt="Riksan Developer" />
+<div align="center">
 
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=500&size=15&duration=3000&pause=1200&color=D4AF37&center=true&vCenter=true&width=650&lines=Serverless+%C2%B7+Realtime+%C2%B7+AI-Augmented+Commerce+Engine" />
+⋆｡‍𖦹°‧⚡‧°𖦹‍｡⋆
 
-<sub>✦ full-stack builder &nbsp;·&nbsp; serverless architecture &nbsp;·&nbsp; AI-augmented engineering ✦</sub>
+</div>
+
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=900&size=42&duration=4000&pause=100000&repeat=false&color=D4AF37,00F5FF,E63E7F,39FF14,FFD700&center=true&vCenter=true&width=750&lines=%E2%9C%A6+RIKSAN+DEVELOPER+%E2%9C%A6" alt="Riksan Developer" />
+
+<div align="center">
+
+▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ✦ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁
+
+</div>
+
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=16&duration=3000&pause=1200&color=D4AF37&center=true&vCenter=true&width=650&lines=Serverless+%C2%B7+Realtime+%C2%B7+AI-Augmented+Commerce+Engine" />
+
+<sub>✦ &nbsp;full-stack builder&nbsp; ⟡ &nbsp;serverless architecture&nbsp; ⟡ &nbsp;AI-augmented engineering&nbsp; ✦</sub>
 
 <br>
 

@@ -1,16 +1,8 @@
 <div align="center">
 
-<img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=700&size=40&duration=6000&pause=100000&repeat=false&color=D4AF37,FFD700&center=true&vCenter=true&width=750&lines=RIKSAN+DEVELOPER" alt="Riksan Developer" />
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=800&size=34&duration=3000&pause=100000&repeat=false&color=00F5FF&center=true&vCenter=true&width=650&lines=RIKSAN+DEVELOPER" alt="Riksan Developer" />
 
-<div align="center">
-
-──────  ✦  ──────
-
-</div>
-
-<img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=500&size=15&duration=3000&pause=1200&color=D4AF37&center=true&vCenter=true&width=650&lines=Serverless+%C2%B7+Realtime+%C2%B7+AI-Augmented+Commerce+Engine" />
-
-<sub>full-stack builder &nbsp;·&nbsp; serverless architecture &nbsp;·&nbsp; AI-augmented engineering</sub>
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=500&size=15&duration=3000&pause=1200&color=D4AF37&center=true&vCenter=true&width=650&lines=Serverless+%C2%B7+Realtime+%C2%B7+AI-Augmented+Commerce+Engine" />
 
 <br>
 

@@ -1,33 +1,36 @@
 <div align="center">
 
-![Header](https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=260&section=header&text=RIKSAN%20DROPSHIP&fontSize=52&fontColor=fff&animation=fadeIn&fontAlignY=34&desc=Serverless%20Realtime%20Commerce%20Engine%20%C2%B7%20AI-Augmented&descAlignY=56&descSize=17)
+![Header](https://capsule-render.vercel.app/api?type=waving&color=0:00F5FF,50:E63E7F,100:FFD700&height=280&section=header&text=RIKSAN%20DROPSHIP&fontSize=54&fontColor=fff&animation=twinkling&fontAlignY=32&desc=%3C%2F%3E%20Serverless%20%C2%B7%20Realtime%20%C2%B7%20AI-Augmented%20Commerce%20Engine&descAlignY=54&descSize=16)
 
-<a href="https://riksan762-creator.github.io/Riksan-Dropshiper/" target="_blank">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&duration=2800&pause=1000&color=D4AF37&center=true&vCenter=true&width=700&lines=%F0%9F%9A%80+Live+Storefront+%2B+Admin+Console;%F0%9F%A7%A0+AI+Shopping+Assistant+Grounded+on+Live+Data;%E2%9A%A1+Zero+Backend+%C2%B7+Zero+Build+Step+%C2%B7+Full+Realtime;%F0%9F%94%92+Role-Based+Firestore+Security+Rules" alt="Typing SVG" />
-</a>
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=26&duration=2600&pause=800&color=00F5FF&center=true&vCenter=true&width=800&lines=%F0%9F%94%90+R.I.K.S.A.N+%3A%3A+SYSTEM+ONLINE;%3E+INITIALIZING+SECURE+COMMERCE+PROTOCOL...;%3E+FIRESTORE+ENCRYPTION+%E2%9C%93+AUTH+VERIFIED+%E2%9C%93;%3E+AI+CORE+GROUNDED+ON+LIVE+DATASTREAM" alt="Typing SVG" />
+
+<br>
+
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=500&size=16&duration=3000&pause=1200&color=D4AF37&center=true&vCenter=true&width=700&lines=Zero+Backend+%C2%B7+Zero+Build+Step+%C2%B7+Full+Realtime+Sync;Role-Based+Access+Control+%C2%B7+Least-Privilege+Security+Rules;AI+Shopping+Agent+%C2%B7+Zero+Hallucination+by+Design" />
 
 <br><br>
 
 <a href="https://riksan762-creator.github.io/Riksan-Dropshiper/" target="_blank">
-  <img src="https://img.shields.io/badge/🚀_LIVE_DEMO-Kunjungi_Aplikasi-E63E7F?style=for-the-badge&labelColor=1B1030" />
+  <img src="https://img.shields.io/badge/🚀_LIVE_DEMO-Kunjungi_Aplikasi-00F5FF?style=for-the-badge&labelColor=0D0221&logoColor=white" />
 </a>
 <a href="https://github.com/riksan762-creator/Riksan-Dropshiper/stargazers" target="_blank">
-  <img src="https://img.shields.io/github/stars/riksan762-creator/Riksan-Dropshiper?style=for-the-badge&color=D4AF37&labelColor=1B1030" />
+  <img src="https://img.shields.io/github/stars/riksan762-creator/Riksan-Dropshiper?style=for-the-badge&color=FFD700&labelColor=0D0221" />
 </a>
 <a href="https://github.com/riksan762-creator/Riksan-Dropshiper/network/members" target="_blank">
-  <img src="https://img.shields.io/github/forks/riksan762-creator/Riksan-Dropshiper?style=for-the-badge&color=12897A&labelColor=1B1030" />
+  <img src="https://img.shields.io/github/forks/riksan762-creator/Riksan-Dropshiper?style=for-the-badge&color=E63E7F&labelColor=0D0221" />
 </a>
 <a href="https://github.com/riksan762-creator/Riksan-Dropshiper/issues" target="_blank">
-  <img src="https://img.shields.io/github/issues/riksan762-creator/Riksan-Dropshiper?style=for-the-badge&color=E63E7F&labelColor=1B1030" />
+  <img src="https://img.shields.io/github/issues/riksan762-creator/Riksan-Dropshiper?style=for-the-badge&color=39FF14&labelColor=0D0221" />
 </a>
 
 <br><br>
 
-<img src="https://img.shields.io/badge/architecture-serverless-brightgreen?style=for-the-badge&labelColor=1B1030" />
-<img src="https://img.shields.io/badge/AI_powered-Groq_LLM-F55036?style=for-the-badge&labelColor=1B1030" />
-<img src="https://img.shields.io/badge/realtime-Firestore-FFA000?style=for-the-badge&labelColor=1B1030" />
-<img src="https://img.shields.io/badge/license-MIT-blue?style=for-the-badge&labelColor=1B1030" />
-<img src="https://img.shields.io/badge/PRs-welcome-D4AF37?style=for-the-badge&labelColor=1B1030" />
+<img src="https://img.shields.io/badge/STATUS-ACTIVE-39FF14?style=for-the-badge&labelColor=0D0221" />
+<img src="https://img.shields.io/badge/ARCHITECTURE-SERVERLESS-00F5FF?style=for-the-badge&labelColor=0D0221" />
+<img src="https://img.shields.io/badge/AI_ENGINE-GROQ_LLM-F55036?style=for-the-badge&labelColor=0D0221" />
+<img src="https://img.shields.io/badge/DATA_LAYER-FIRESTORE-FFA000?style=for-the-badge&labelColor=0D0221" />
+<img src="https://img.shields.io/badge/SECURITY-RBAC_ENFORCED-E63E7F?style=for-the-badge&labelColor=0D0221" />
+<img src="https://img.shields.io/badge/LICENSE-MIT-D4AF37?style=for-the-badge&labelColor=0D0221" />
 
 <br><br>
 
@@ -35,7 +38,18 @@
 
 <br><br>
 
-<img src="https://komarev.com/ghpvc/?username=riksan762-creator&label=Kunjungan+Profil&color=E63E7F&style=for-the-badge" />
+<img src="https://komarev.com/ghpvc/?username=riksan762-creator&label=PROFILE+VIEWS&color=00F5FF&style=for-the-badge" />
+
+<br><br>
+
+```
+╔══════════════════════════════════════════════════════════════════╗
+║  root@riksan-dropship:~$ whoami                                    ║
+║  > serverless_commerce_engine :: ai_augmented :: realtime_sync     ║
+║  root@riksan-dropship:~$ status --check                            ║
+║  > [OK] firestore  [OK] auth  [OK] security_rules  [OK] ai_agent   ║
+╚══════════════════════════════════════════════════════════════════╝
+```
 
 </div>
 
@@ -87,7 +101,7 @@
 ## 🧠 Lapisan Kecerdasan Buatan
 
 <div align="center">
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=500&size=16&duration=3200&pause=1200&color=12897A&center=true&vCenter=true&width=620&lines=Grounded+on+live+Firestore+state%2C+not+static+training+data;No+hallucinated+products.+No+hallucinated+prices." />
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=500&size=15&duration=3200&pause=1200&color=39FF14&center=true&vCenter=true&width=650&lines=%3E+grounded_on%3A+live_firestore_state;%3E+hallucination_rate%3A+0%25+(by+design);%3E+context_injection%3A+realtime" />
 </div>
 
 Riksan Dropship mengintegrasikan **agen percakapan berbasis LLM** (via [Groq](https://groq.com), model `openai/gpt-oss-20b`) yang tidak beroperasi dalam ruang hampa — melainkan **di-*ground*-kan langsung pada state database realtime**, bukan pengetahuan statis yang bisa kedaluwarsa.
@@ -100,12 +114,12 @@ graph LR
     E[⚙️ Konfigurasi Persona Admin] -.system directive.-> B
     B --> F[✅ Respons Ter-grounding + Aksi Kontekstual]
 
-    style A fill:#1B1030,stroke:#D4AF37,color:#fff
-    style B fill:#E63E7F,stroke:#D4AF37,color:#fff
-    style C fill:#12897A,stroke:#D4AF37,color:#fff
-    style D fill:#12897A,stroke:#D4AF37,color:#fff
-    style E fill:#1B1030,stroke:#D4AF37,color:#fff
-    style F fill:#D4AF37,stroke:#1B1030,color:#000
+    style A fill:#0D0221,stroke:#00F5FF,color:#fff
+    style B fill:#E63E7F,stroke:#00F5FF,color:#fff
+    style C fill:#12897A,stroke:#39FF14,color:#fff
+    style D fill:#12897A,stroke:#39FF14,color:#fff
+    style E fill:#0D0221,stroke:#FFD700,color:#fff
+    style F fill:#FFD700,stroke:#0D0221,color:#000
 ```
 
 **Prinsip rancangan agen ini:**
@@ -126,6 +140,7 @@ graph LR
 <td width="50%" valign="top">
 
 ### 🛍️ Antarmuka Publik (Storefront)
+![](https://img.shields.io/badge/-realtime-00F5FF?style=flat-square&labelColor=0D0221)
 - 🔄 Katalog dengan sinkronisasi realtime lintas sesi
 - 🔍 Mesin pencarian & penyortiran multi-kriteria
 - 🛒 Manajemen keranjang berbasis sesi (`sessionStorage`)
@@ -141,6 +156,7 @@ graph LR
 <td width="50%" valign="top">
 
 ### 🔐 Antarmuka Administratif
+![](https://img.shields.io/badge/-restricted_access-E63E7F?style=flat-square&labelColor=0D0221)
 - 🔑 Autentikasi dengan verifikasi peran berlapis
 - 📊 Dasbor analitik: inventori, stok kritis, performa produk
 - 🧾 Pencatatan transaksi masuk secara otomatis
@@ -207,12 +223,12 @@ graph TB
     A --context injection produk & ongkir--> F
     F --respons ter-grounding--> A
 
-    style A fill:#1B1030,stroke:#D4AF37,color:#fff
-    style B fill:#1B1030,stroke:#D4AF37,color:#fff
-    style C fill:#FFA000,stroke:#1B1030,color:#000
-    style D fill:#FFCA28,stroke:#1B1030,color:#000
-    style E fill:#E63E7F,stroke:#1B1030,color:#fff
-    style F fill:#F55036,stroke:#1B1030,color:#fff
+    style A fill:#0D0221,stroke:#00F5FF,color:#fff
+    style B fill:#0D0221,stroke:#E63E7F,color:#fff
+    style C fill:#FFA000,stroke:#0D0221,color:#000
+    style D fill:#FFCA28,stroke:#0D0221,color:#000
+    style E fill:#E63E7F,stroke:#0D0221,color:#fff
+    style F fill:#F55036,stroke:#0D0221,color:#fff
 ```
 
 Tidak terdapat lapisan middleware atau server aplikasi. Baik klien publik maupun administratif berkomunikasi **langsung** dengan platform Firebase sebagai *single source of truth* — pola yang meminimalkan titik kegagalan sekaligus menghilangkan biaya pemeliharaan server konvensional.
@@ -273,6 +289,10 @@ Tidak terdapat lapisan middleware atau server aplikasi. Baik klien publik maupun
 
 ## 🔒 Model Keamanan
 
+<div align="center">
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=500&size=15&duration=3000&pause=1200&color=E63E7F&center=true&vCenter=true&width=650&lines=%3E+access_policy%3A+least_privilege;%3E+client_side_validation%3A+NEVER+trusted;%3E+enforcement_layer%3A+firestore.rules" />
+</div>
+
 Kebijakan akses data dirancang mengikuti **prinsip privilese minimum** (*principle of least privilege*), didefinisikan secara deklaratif melalui Firestore Security Rules — bukan divalidasi di sisi klien yang inheren dapat dimanipulasi.
 
 | Koleksi Data | Hak Baca | Hak Tulis |
@@ -311,16 +331,14 @@ Kebijakan akses data dirancang mengikuti **prinsip privilese minimum** (*princip
 
 <br>
 
-### 💛 Dukung Proyek Ini
-
-**Jika arsitektur atau pendekatan rekayasa proyek ini memberi nilai bagi Anda, pertimbangkan untuk memberi ⭐ pada repositori ini.**
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=20&duration=2500&pause=900&color=FFD700&center=true&vCenter=true&width=650&lines=%E2%AD%90+ENJOYING+THE+ARCHITECTURE%3F+DROP+A+STAR;%F0%9F%94%A5+BUILT+WITH+PASSION+BY+RIKSAN" />
 
 <a href="https://github.com/riksan762-creator/Riksan-Dropshiper/stargazers">
-  <img src="https://img.shields.io/badge/⭐_Star_this_repo-D4AF37?style=for-the-badge&labelColor=1B1030" />
+  <img src="https://img.shields.io/badge/⭐_Star_this_repo-FFD700?style=for-the-badge&labelColor=0D0221" />
 </a>
 
 <br><br>
 
-![Footer](https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=140&section=footer)
+![Footer](https://capsule-render.vercel.app/api?type=waving&color=0:FFD700,50:E63E7F,100:00F5FF&height=150&section=footer)
 
 </div>

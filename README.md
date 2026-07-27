@@ -1,28 +1,43 @@
 <div align="center">
 
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=800&size=32&duration=2500&pause=800&color=00F5FF&center=true&vCenter=true&width=650&lines=RIKSAN+DROPSHIP;%3E+SYSTEM+ONLINE...;%3E+SECURE+%E2%9C%93+REALTIME+%E2%9C%93+AI-READY+%E2%9C%93" alt="Typing SVG" />
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=800&size=34&duration=2500&pause=800&color=00F5FF&center=true&vCenter=true&width=650&lines=RIKSAN+DROPSHIP" alt="Typing SVG" />
 
 <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=500&size=15&duration=3000&pause=1200&color=D4AF37&center=true&vCenter=true&width=600&lines=Serverless+%C2%B7+Realtime+%C2%B7+AI-Augmented+Commerce+Engine" />
 
 <br>
 
-[![Live Demo](https://img.shields.io/badge/🚀_LIVE_DEMO-Kunjungi_Aplikasi-00F5FF?style=for-the-badge&labelColor=0D0221)](https://riksan762-creator.github.io/Riksan-Dropshiper/)
+[![Live Demo](https://img.shields.io/badge/LIVE_DEMO-visit_app-00F5FF?style=for-the-badge&logo=googlechrome&logoColor=white&labelColor=0D0221)](https://riksan762-creator.github.io/Riksan-Dropshiper/)
 [![Stars](https://img.shields.io/github/stars/riksan762-creator/Riksan-Dropshiper?style=for-the-badge&color=FFD700&labelColor=0D0221)](https://github.com/riksan762-creator/Riksan-Dropshiper/stargazers)
 [![Forks](https://img.shields.io/github/forks/riksan762-creator/Riksan-Dropshiper?style=for-the-badge&color=E63E7F&labelColor=0D0221)](https://github.com/riksan762-creator/Riksan-Dropshiper/network/members)
-[![License](https://img.shields.io/badge/LICENSE-MIT-39FF14?style=for-the-badge&labelColor=0D0221)](#)
+[![License](https://img.shields.io/badge/LICENSE-MIT-39FF14?style=for-the-badge&labelColor=0D0221)](#-lisensi)
 
 <br>
 
-![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white)
-![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat-square&logo=css3&logoColor=white)
-![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black)
-![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=flat-square&logo=firebase&logoColor=black)
-![GitHub Pages](https://img.shields.io/badge/GitHub_Pages-222222?style=flat-square&logo=github&logoColor=white)
-![Groq](https://img.shields.io/badge/Groq_LLM-F55036?style=flat-square&logo=lightning&logoColor=white)
-![Claude](https://img.shields.io/badge/Claude_AI-D4AF37?style=flat-square&logo=anthropic&logoColor=white)
-![ChatGPT](https://img.shields.io/badge/ChatGPT-74AA9C?style=flat-square&logo=openai&logoColor=white)
-![Java](https://img.shields.io/badge/Java-007396?style=flat-square&logo=openjdk&logoColor=white)
-![Git](https://img.shields.io/badge/Git-F05032?style=flat-square&logo=git&logoColor=white)
+![Last Commit](https://img.shields.io/github/last-commit/riksan762-creator/Riksan-Dropshiper?style=flat-square&color=00F5FF&labelColor=0D0221)
+![Repo Size](https://img.shields.io/github/repo-size/riksan762-creator/Riksan-Dropshiper?style=flat-square&color=D4AF37&labelColor=0D0221)
+![Issues](https://img.shields.io/github/issues/riksan762-creator/Riksan-Dropshiper?style=flat-square&color=E63E7F&labelColor=0D0221)
+![Status](https://img.shields.io/badge/status-active-39FF14?style=flat-square&labelColor=0D0221)
+
+</div>
+
+<br>
+
+<div align="center">
+
+### 🧩 Dibangun dengan
+
+<img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" />
+<img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" />
+<img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" />
+<img src="https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" />
+<img src="https://img.shields.io/badge/GitHub_Pages-222222?style=for-the-badge&logo=github&logoColor=white" />
+
+### 🧠 Didukung AI
+
+<img src="https://img.shields.io/badge/Groq_LLM-F55036?style=for-the-badge&logo=lightning&logoColor=white" />
+<img src="https://img.shields.io/badge/Claude-D97757?style=for-the-badge&logo=anthropic&logoColor=white" />
+<img src="https://img.shields.io/badge/ChatGPT-74AA9C?style=for-the-badge&logo=openai&logoColor=white" />
+<img src="https://img.shields.io/badge/GPT_OSS_20B-000000?style=for-the-badge&logo=openai&logoColor=white" />
 
 </div>
 
@@ -35,14 +50,26 @@
 
 ## 📚 Daftar Isi
 
-- [🧠 Lapisan Kecerdasan Buatan](#-lapisan-kecerdasan-buatan)
-- [✨ Kapabilitas Sistem](#-kapabilitas-sistem)
-- [🧰 Susunan Teknologi](#-susunan-teknologi)
-- [🏗️ Rancangan Arsitektur](#️-rancangan-arsitektur)
-- [📁 Anatomi Proyek](#-anatomi-proyek)
-- [🚀 Provisioning & Deployment](#-provisioning--deployment)
-- [🔒 Model Keamanan](#-model-keamanan)
-- [🗺️ Roadmap](#️-roadmap)
+| | |
+|---|---|
+| [🔎 Ringkasan](#-ringkasan) | [🏗️ Arsitektur](#️-rancangan-arsitektur) |
+| [🧠 Lapisan AI](#-lapisan-kecerdasan-buatan) | [📁 Struktur Proyek](#-anatomi-proyek) |
+| [✨ Fitur](#-kapabilitas-sistem) | [🚀 Instalasi](#-provisioning--deployment) |
+| [🧰 Tech Stack](#-susunan-teknologi) | [🔒 Keamanan](#-model-keamanan) |
+| [🗺️ Roadmap](#️-roadmap) | [📄 Lisensi](#-lisensi) |
+
+---
+
+## 🔎 Ringkasan
+
+**Riksan Dropship** adalah platform e-commerce dropshipping *serverless* untuk pasar Indonesia — menggabungkan storefront publik, panel admin, dan asisten belanja bertenaga AI dalam satu arsitektur tanpa server aplikasi. Dibangun murni dengan HTML/CSS/JS dan Firebase sebagai *backend-as-a-service*, lalu didistribusikan gratis lewat GitHub Pages.
+
+| Aspek | Detail |
+|---|---|
+| 🎯 Target pengguna | Pelaku dropship & UMKM Indonesia |
+| ⚙️ Model arsitektur | Serverless, client-direct-to-database |
+| 🧠 Fitur unggulan | Asisten belanja AI dengan grounding data realtime |
+| 💸 Biaya infrastruktur | Free tier Firebase + GitHub Pages |
 
 ---
 
@@ -66,9 +93,10 @@ graph LR
 
 | Prinsip | Implementasi |
 |---|---|
-| 🎯 **Grounding, bukan generasi bebas** | Model dilarang berspekulasi di luar data katalog — no halusinasi produk/harga. |
+| 🎯 **Grounding, bukan generasi bebas** | Model dilarang berspekulasi di luar data katalog — tidak ada halusinasi produk/harga. |
 | 🛒 **Dari dialog ke aksi** | Rekomendasi produk dirender sebagai tombol interaktif tambah keranjang. |
-| ⚙️ **Konfigurasi deklaratif** | Model, API key, dan persona diatur lewat panel admin — tanpa redeploy. |
+| ⚙️ **Konfigurasi deklaratif** | Model, API key, dan persona diatur lewat panel admin — tanpa redeploy kode. |
+| 🔄 **Konsistensi temporal** | Context window dibangun dari query realtime, jadi tidak ada jeda data. |
 
 ---
 
@@ -79,25 +107,32 @@ graph LR
 <td width="50%" valign="top">
 
 ### 🛍️ Storefront
-- 🔄 Katalog realtime lintas sesi
-- 🔍 Pencarian & filter multi-kriteria
-- 🛒 Keranjang berbasis `sessionStorage`
-- 📲 Checkout otomatis ke WhatsApp
-- 📦 Estimasi ongkir per wilayah
-- ⭐ Testimoni produk
-- 🎰 Gamifikasi diskon
-- 🤖 Agen belanja berbasis AI
+
+| Fitur | Status |
+|---|:---:|
+| Katalog realtime lintas sesi | ✅ |
+| Pencarian & filter multi-kriteria | ✅ |
+| Keranjang berbasis `sessionStorage` | ✅ |
+| Checkout otomatis ke WhatsApp | ✅ |
+| Estimasi ongkir per wilayah | ✅ |
+| Testimoni produk | ✅ |
+| Gamifikasi diskon | ✅ |
+| Asisten belanja AI | ✅ |
 
 </td>
 <td width="50%" valign="top">
 
 ### 🔐 Admin Console
-- 🔑 Autentikasi berlapis
-- 📊 Dasbor analitik & stok kritis
-- 🧾 Pencatatan transaksi otomatis
-- 👥 Manajemen pengguna
-- 🛠️ CRUD produk, kategori, banner, ongkir
-- ⚙️ Konfigurasi toko & agen AI
+
+| Fitur | Status |
+|---|:---:|
+| Autentikasi berlapis | ✅ |
+| Dasbor analitik & stok kritis | ✅ |
+| Pencatatan transaksi otomatis | ✅ |
+| Manajemen pengguna terdaftar | ✅ |
+| CRUD produk/kategori/banner/ongkir | ✅ |
+| Kurasi testimoni | ✅ |
+| Konfigurasi toko & agen AI | ✅ |
 
 </td>
 </tr>
@@ -107,13 +142,14 @@ graph LR
 
 ## 🧰 Susunan Teknologi
 
-| Lapisan | Teknologi | Alasan |
+| Lapisan | Teknologi | Rasionalisasi Teknis |
 |---|---|---|
-| 🎨 Presentasi | HTML5 · CSS3 · Vanilla JavaScript | Ringan, tanpa overhead framework |
-| 💾 Data | Firebase Firestore | Sinkronisasi push-based (`onSnapshot`) |
-| 🔑 Auth | Firebase Authentication | Verifikasi peran via security rules |
-| 🧠 AI | Groq API (`gpt-oss-20b`) | Latensi rendah untuk chat sinkron |
-| 🌐 Hosting | GitHub Pages | CDN statis global, gratis |
+| 🎨 **Presentasi** | HTML5 · CSS3 · Vanilla JavaScript (ES Modules) | Ringan, tanpa overhead framework |
+| 💾 **Data** | Firebase Firestore | Sinkronisasi push-based (`onSnapshot`) |
+| 🔑 **Auth** | Firebase Authentication | Verifikasi peran via security rules |
+| 🧠 **AI** | Groq API (`gpt-oss-20b`) | Latensi rendah untuk chat sinkron |
+| 🌐 **Hosting** | GitHub Pages | CDN statis global, gratis |
+| 🖼️ **Aset** | Base64 + kompresi client-side | Tanpa object storage terpisah |
 
 ---
 
@@ -136,7 +172,7 @@ graph TB
     style F fill:#F55036,stroke:#0D0221,color:#fff
 ```
 
-Tidak ada server aplikasi di tengah. Klien publik & admin berbicara **langsung** ke Firebase sebagai *single source of truth*.
+Tidak ada server aplikasi di tengah. Klien publik & admin berbicara **langsung** ke Firebase sebagai *single source of truth* — meminimalkan titik kegagalan sekaligus biaya maintenance.
 
 ---
 
@@ -195,6 +231,12 @@ Kebijakan akses mengikuti **prinsip privilese minimum**, didefinisikan lewat Fir
 - [ ] Notifikasi push transaksi
 - [ ] Payment gateway native
 - [ ] Arsitektur multi-tenant
+
+---
+
+## 📄 Lisensi
+
+Proyek ini dirilis di bawah lisensi **MIT** — bebas digunakan, dimodifikasi, dan didistribusikan dengan atribusi.
 
 ---
 

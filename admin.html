@@ -17,6 +17,15 @@
   .status-select{font-size:11.5px;padding:5px 8px;border-radius:8px;border:1px solid #D8CBB0;background:#fff;cursor:pointer;max-width:150px;}
   .forgot-pass-link{background:none;border:none;color:#B8215C;font-size:12.5px;text-decoration:underline;cursor:pointer;padding:0;margin:-8px 0 12px;display:block;text-align:right;}
   .login-success{color:#12897A;font-size:13px;margin:4px 0;}
+  .analisa-result{font-size:13.5px;line-height:1.75;color:#191322;white-space:pre-wrap;}
+  .analisa-loading{display:flex;align-items:center;gap:8px;font-size:13px;color:#473C58;}
+  .analisa-error{color:#c0392b;font-size:13px;}
+  .ai-generate-btn{
+    background:linear-gradient(135deg,#D4A73E,#FF4667);color:#fff;border:none;
+    border-radius:999px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;
+    white-space:nowrap;
+  }
+  .ai-generate-btn:disabled{opacity:.6;cursor:not-allowed;}
   .stok-kritis-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px dashed #D8CBB0;font-size:13.5px;}
   .stok-kritis-row:last-child{border-bottom:none;}
   .bar-row{display:grid;grid-template-columns:120px 1fr 34px;align-items:center;gap:10px;padding:7px 0;font-size:12.5px;}
@@ -130,6 +139,16 @@
         <div class="panel">
           <div class="panel-head"><h3>🏆 Produk Terlaris</h3></div>
           <div id="topProdukChart"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <h3>🤖 Analisa Bisnis AI</h3>
+            <button class="btn-add" id="btnAnalisaBisnis">✨ Analisa Sekarang</button>
+          </div>
+          <p style="font-size:12.5px;color:var(--ink-soft);margin:-6px 0 14px;">
+            AI bakal ngeliat data produk, stok, margin, dan pesanan kamu, terus kasih rekomendasi bisnis konkret. Butuh Groq API Key udah diisi di Pengaturan Toko.
+          </p>
+          <div id="analisaBisnisBox"><p style="font-size:13px;color:var(--ink-soft);">Klik "Analisa Sekarang" buat mulai.</p></div>
         </div>
       </section>
 
@@ -376,8 +395,12 @@
           </details>
         </div>
         <div class="field full">
-          <label for="fDeskripsi">Deskripsi</label>
+          <label for="fDeskripsi" style="display:flex;justify-content:space-between;align-items:center;">
+            <span>Deskripsi</span>
+            <button type="button" id="btnGenerateDeskripsi" class="ai-generate-btn">✨ Generate dari Foto (AI)</button>
+          </label>
           <textarea id="fDeskripsi" rows="3"></textarea>
+          <p class="upload-hint" id="generateDeskripsiHint" style="display:none;"></p>
         </div>
       </div>
       <div class="modal-actions">

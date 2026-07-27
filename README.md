@@ -1,8 +1,10 @@
 <div align="center">
 
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=800&size=34&duration=2500&pause=800&color=00F5FF&center=true&vCenter=true&width=650&lines=RIKSAN+DEVELOPER" alt="Typing SVG" />
+<img src="https://readme-typing-svg.demolab.com?font=Poppins&weight=900&size=40&duration=3500&pause=1000&color=D4AF37,00F5FF,E63E7F,39FF14,FFD700&center=true&vCenter=true&width=700&lines=RIKSAN+DEVELOPER" alt="Typing SVG" />
 
 <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=500&size=15&duration=3000&pause=1200&color=D4AF37&center=true&vCenter=true&width=650&lines=Serverless+%C2%B7+Realtime+%C2%B7+AI-Augmented+Commerce+Engine" />
+
+<sub>✦ full-stack builder &nbsp;·&nbsp; serverless architecture &nbsp;·&nbsp; AI-augmented engineering ✦</sub>
 
 <br>
 
@@ -233,6 +235,6 @@ Proyek ini dirilis di bawah lisensi **MIT** — bebas digunakan, dimodifikasi, d
 
 <div align="center">
 
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=18&duration=2500&pause=900&color=FFD700&center=true&vCenter=true&width=600&lines=%E2%AD%90+Jika+arsitektur+ini+menginspirasi%2C+berikan+bintang;%F0%9F%94%A5+Dirancang+%26+dibangun+oleh+Riksan+Developer" />
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=18&duration=2800&pause=900&color=D4AF37,00F5FF,E63E7F,FFD700&center=true&vCenter=true&width=600&lines=%E2%AD%90+Jika+arsitektur+ini+menginspirasi%2C+berikan+bintang;%F0%9F%94%A5+Dirancang+%26+dibangun+oleh+RIKSAN+DEVELOPER" />
 
 </div>

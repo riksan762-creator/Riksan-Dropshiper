@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=800&size=40&duration=4000&pause=100000&repeat=false&color=D4AF37,00F5FF,E63E7F,D4AF37&center=true&vCenter=true&width=750&lines=RIKSAN+DEVELOPER" alt="Riksan Developer" />
+<img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=700&size=40&duration=6000&pause=100000&repeat=false&color=D4AF37,FFD700&center=true&vCenter=true&width=750&lines=RIKSAN+DEVELOPER" alt="Riksan Developer" />
 
 <div align="center">
 

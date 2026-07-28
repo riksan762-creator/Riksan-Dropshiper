@@ -26,6 +26,13 @@
     white-space:nowrap;
   }
   .ai-generate-btn:disabled{opacity:.6;cursor:not-allowed;}
+  .restock-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px dashed #D8CBB0;font-size:12.5px;gap:10px;}
+  .restock-row:last-child{border-bottom:none;}
+  .restock-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .restock-badge{font-family:monospace;font-weight:700;font-size:11px;padding:4px 9px;border-radius:999px;white-space:nowrap;}
+  .restock-badge.urgent{background:#F8D7DA;color:#721C24;}
+  .restock-badge.warn{background:#FFF3CD;color:#856404;}
+  .restock-badge.safe{background:#D4EDDA;color:#155724;}
   .stok-kritis-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px dashed #D8CBB0;font-size:13.5px;}
   .stok-kritis-row:last-child{border-bottom:none;}
   .bar-row{display:grid;grid-template-columns:120px 1fr 34px;align-items:center;gap:10px;padding:7px 0;font-size:12.5px;}
@@ -139,6 +146,13 @@
         <div class="panel">
           <div class="panel-head"><h3>🏆 Produk Terlaris</h3></div>
           <div id="topProdukChart"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>📈 Prediksi Restock Pintar</h3></div>
+          <p style="font-size:12.5px;color:var(--ink-soft,#3A2C52);margin:-6px 0 14px;">
+            Dihitung dari kecepatan jual beneran (pesanan lunas 14 hari terakhir), bukan tebakan.
+          </p>
+          <div id="restockPrediksiBox"></div>
         </div>
         <div class="panel">
           <div class="panel-head">

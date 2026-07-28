@@ -71,6 +71,7 @@ let searchTerm = "";
 let aiChatHistory = [];
 let currentUser = null;
 let unsubMyOrders = null;
+let myOrdersCache = [];
 
 document.addEventListener("DOMContentLoaded", () => {
   bindUI();
@@ -563,7 +564,7 @@ function logOrder(cart, total, buyer, spin) {
   try {
     const items = cart.map(c => {
       const p = products.find(x => x.id === c.id);
-      return p ? { nama: p.nama, qty: c.qty, harga: p.harga, subtotal: p.harga * c.qty } : null;
+      return p ? { id: p.id, nama: p.nama, qty: c.qty, harga: p.harga, subtotal: p.harga * c.qty } : null;
     }).filter(Boolean);
 
     addDoc(collection(db, "orders"), {
@@ -735,6 +736,21 @@ function buildOngkirContext() {
   return `\n\nEstimasi ongkir per wilayah (kasar, dikonfirmasi admin saat checkout):\n${list}`;
 }
 
+function buildMyOrdersContext() {
+  if (!currentUser) {
+    return "\n\nCustomer yang chat sekarang BELUM LOGIN, jadi kamu TIDAK punya data pesanan mereka. Kalau mereka nanya soal pesanan, minta mereka login dulu lewat tombol Masuk di header biar kamu bisa bantu cek.";
+  }
+  if (myOrdersCache.length === 0) {
+    return "\n\nCustomer yang chat sekarang SUDAH LOGIN tapi belum pernah checkout sama sekali — belum ada riwayat pesanan.";
+  }
+  const list = myOrdersCache.slice(0, 5).map(o => {
+    const tgl = o.createdAt ? new Date(o.createdAt).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }) : "-";
+    const itemsTxt = (o.items || []).map(it => `${it.nama} x${it.qty}`).join(", ");
+    return `- [${tgl}] ${itemsTxt} | Total: ${rupiah(o.total)} | Status: ${o.status || "Menunggu Pembayaran"}`;
+  }).join("\n");
+  return `\n\nRiwayat pesanan customer yang lagi chat sekarang (5 terakhir, ini data ASLI milik mereka, aman dibagikan ke mereka):\n${list}\nKalau mereka nanya soal pesanan/status pengiriman, jawab pakai data ini. Kalau mereka nanya pesanan yang nggak ada di daftar ini, bilang jujur nggak ketemu dan sarankan cek menu "Pesanan Saya" atau tanya admin.`;
+}
+
 function buildSystemPrompt() {
   const base = settings.aiPersona?.trim()
     ? settings.aiPersona.trim()
@@ -744,11 +760,12 @@ function buildSystemPrompt() {
 3. Kalau ada produk yang harganya dicoret (diskon), sebutkan itu sebagai nilai jual.
 4. JANGAN PERNAH mengarang nama produk, harga, atau stok yang tidak ada di daftar — kalau nggak ada datanya, bilang terus terang dan tawarkan tanya admin lewat WhatsApp.
 5. Kalau ditanya hal di luar topik toko/produk, jawab singkat lalu arahkan balik ke soal belanja.
+6. Kalau customer nanya soal pesanan mereka ("pesanan saya gimana", "udah sampai mana", dll), jawab pakai data riwayat pesanan yang dikasih di bawah — JANGAN bilang "cek menu Pesanan Saya" kalau datanya udah ada di konteks kamu, langsung jawab aja.
 
 PENTING — KEMAMPUAN KHUSUS KAMU: kamu BISA langsung nambahin produk ke keranjang customer, nggak cuma nyaranin doang. Kalau customer secara eksplisit bilang mau beli/tambahin sesuatu (misal "mau kaos item 2" atau "tambahin case HP nya"), cari produk yang PALING COCOK di katalog (cocokin nama & kategori, boleh partial match), terus di AKHIR jawaban kamu, tambahkan baris terpisah PERSIS format ini (jangan ubah formatnya, jangan kasih penjelasan tambahan setelah baris ini):
 <<<ADD_CART:[{"id":"ID_PRODUK","qty":JUMLAH}]>>>
 Bisa lebih dari satu item dalam array kalau customer minta beberapa sekaligus. Kalau stok produk itu habis, JANGAN tambahkan baris itu — kasih tau customer stoknya habis dan tawarkan produk mirip lainnya. Kalau customer cuma nanya-nanya/belum yakin, JANGAN tambahkan baris ADD_CART — tunggu sampai mereka jelas-jelas minta ditambahin.`;
-  return `${base}\n\n${buildProductContext()}${buildOngkirContext()}`;
+  return `${base}\n\n${buildProductContext()}${buildOngkirContext()}${buildMyOrdersContext()}`;
 }
 
 function matchProductsInText(text) {
@@ -968,6 +985,7 @@ function showAccountLoggedOut() {
   const label = document.getElementById("accountBtnLabel");
   if (label) label.textContent = "👤 Masuk";
   if (unsubMyOrders) { unsubMyOrders(); unsubMyOrders = null; }
+  myOrdersCache = [];
 }
 
 /* ---------- riwayat pesanan saya (customer) ---------- */
@@ -979,6 +997,7 @@ function listenMyOrders(uid) {
     (snap) => {
       const myOrders = snap.docs.map(d => ({ id: d.id, ...d.data() }))
         .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+      myOrdersCache = myOrders;
       renderMyOrders(myOrders);
     },
     (err) => console.error("Gagal memuat pesanan saya:", err)

@@ -282,6 +282,7 @@ function listenProducts() {
       renderTopProduk();
       renderTestimoniTable();
       renderUntungCard();
+      renderRestockPrediksi();
     },
     (err) => {
       console.error(err);
@@ -334,6 +335,7 @@ function listenOrders() {
         .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
       renderPesananTable();
       renderPendapatanCard();
+      renderRestockPrediksi();
     },
     (err) => {
       console.error(err);
@@ -438,11 +440,19 @@ function buildBusinessDataSummary() {
   const pesananMenunggu = orders.filter(o => (o.status || "Menunggu Pembayaran") === "Menunggu Pembayaran").length;
   const totalPesanan = orders.length;
 
+  const velocity = computeSalesVelocity().filter(p => p.soldQty > 0).sort((a, b) => (a.estimasiHari ?? Infinity) - (b.estimasiHari ?? Infinity));
+  const velocityTxt = velocity.length > 0
+    ? velocity.map(p => `- ${p.nama}: terjual ${p.soldQty} unit dalam ${RESTOCK_PERIOD_DAYS} hari terakhir (${p.perDay.toFixed(2)}/hari)${p.estimasiHari !== null ? `, estimasi stok habis ${p.estimasiHari} hari lagi kalau tren ini lanjut` : ""}`).join("\n")
+    : "Belum ada penjualan tercatat dalam 14 hari terakhir buat dihitung kecepatannya.";
+
   return `DATA TOKO SAAT INI:
 
 Total produk: ${totalProduk}
 Stok habis: ${stokHabis.length} produk (${stokHabis.map(p => p.nama).join(", ") || "-"})
 Stok menipis (≤5): ${stokMenipis.length} produk (${stokMenipis.map(p => `${p.nama}: ${p.stok}`).join(", ") || "-"})
+
+Kecepatan jual & prediksi restock (dihitung dari pesanan lunas ${RESTOCK_PERIOD_DAYS} hari terakhir, bukan sekadar total historis):
+${velocityTxt}
 
 Daftar lengkap produk:
 ${produkList}
@@ -454,6 +464,19 @@ Total testimoni: ${testimoni.length}`;
 }
 
 /* ---------- AI: generate deskripsi produk dari foto (vision) ---------- */
+/* Bersihin hasil AI dari format/simbol berantakan (bullet, markdown, kalimat pembuka basa-basi) */
+function cleanAiDescription(text) {
+  if (!text) return text;
+  let clean = text.trim();
+  clean = clean.replace(/^["'“”‘’]+|["'“”‘’]+$/g, "");
+  clean = clean.replace(/^[\s]*[-•*]\s*/gm, "");
+  clean = clean.replace(/^\d+\.\s*/gm, "");
+  clean = clean.replace(/\*\*/g, "").replace(/[*_#]/g, "");
+  clean = clean.replace(/^(berikut|ini dia|tentu|oke,?|baik,?)[^.]*:\s*/i, "");
+  clean = clean.split("\n").map(l => l.trim()).filter(Boolean).join(" ");
+  return clean.trim();
+}
+
 async function generateDeskripsiFromPhoto() {
   const btn = document.getElementById("btnGenerateDeskripsi");
   const hint = document.getElementById("generateDeskripsiHint");
@@ -488,7 +511,16 @@ async function generateDeskripsiFromPhoto() {
             content: [
               {
                 type: "text",
-                text: `Lihat foto produk ini${namaProduk ? ` (nama produk: "${namaProduk}")` : ""}. Tulis deskripsi jualan yang menarik dalam Bahasa Indonesia buat toko online, 2-3 kalimat, sebutin ciri fisik/warna/bahan yang keliatan di foto kalau relevan, gaya santai tapi meyakinkan buat calon pembeli. Jangan pakai tanda kutip di jawabanmu, langsung teks deskripsinya aja.`,
+                text: `Lihat foto produk ini${namaProduk ? ` (nama produk: "${namaProduk}")` : ""}.
+
+Tulis deskripsi jualan buat toko online dengan aturan KETAT berikut:
+1. WAJIB 100% Bahasa Indonesia — jangan campur kata Bahasa Inggris sama sekali, walaupun cuma satu kata.
+2. Persis 2-3 kalimat, ditulis sebagai satu paragraf mengalir (bukan poin-poin, bukan bullet, bukan penomoran, tanpa tanda bintang atau simbol markdown apapun).
+3. Sebutkan ciri fisik yang keliatan di foto kalau relevan (warna, bahan, model), tapi jangan mengarang detail yang nggak keliatan jelas di foto.
+4. Gaya santai tapi meyakinkan, kayak admin toko yang paham produknya, bukan bahasa robot/formal kaku.
+5. Jangan ada kalimat pembuka basa-basi ("Berikut deskripsi...", "Tentu, ini dia...") — langsung tulis deskripsinya, teks polos aja, tanpa tanda kutip di awal-akhir.
+
+Contoh format yang benar (jangan ditiru isinya, cuma gaya penulisannya): "Kaos oversize bahan katun combed adem banget dipakai harian, jahitannya rapi dan nggak gampang melar. Warna hitamnya pekat dan tetap keliatan fresh meski udah dicuci berkali-kali. Cocok buat gaya kasual sehari-hari atau dipadu jaket buat tampilan yang lebih kece."`,
               },
               { type: "image_url", image_url: { url: gambar } },
             ],
@@ -505,7 +537,8 @@ async function generateDeskripsiFromPhoto() {
       return;
     }
 
-    const result = data?.choices?.[0]?.message?.content?.trim();
+    const rawResult = data?.choices?.[0]?.message?.content?.trim();
+    const result = cleanAiDescription(rawResult);
     if (result) {
       document.getElementById("fDeskripsi").value = result;
       hint.textContent = "✅ Deskripsi ke-generate dari foto — boleh diedit lagi sebelum disimpan.";
@@ -534,7 +567,7 @@ async function runBusinessAnalysis() {
   btn.disabled = true;
   box.innerHTML = `<div class="analisa-loading"><span class="ai-typing-dots"><span></span><span></span><span></span></span> Lagi nganalisa data toko kamu...</div>`;
 
-  const systemPrompt = `Kamu adalah konsultan bisnis buat toko dropship online. Dikasih data toko, kasih analisa singkat dan rekomendasi KONKRET dan actionable dalam Bahasa Indonesia santai tapi profesional. Fokus ke: produk mana yang perlu direstock/diperhatiin, produk margin tipis/tebal, tren penjualan, dan saran taktis buat naikin penjualan. Format pakai poin-poin singkat (pakai tanda "•"), maksimal 8 poin, jangan bertele-tele. Jangan basa-basi pembuka, langsung ke poin-poinnya.`;
+  const systemPrompt = `Kamu adalah konsultan bisnis buat toko dropship online. Dikasih data toko, kasih analisa singkat dan rekomendasi KONKRET dan actionable dalam Bahasa Indonesia santai tapi profesional. Fokus ke: produk mana yang perlu direstock/diperhatiin (PAKAI data "Kecepatan jual & prediksi restock" yang udah dihitung, itu lebih akurat daripada total historis), produk margin tipis/tebal, tren penjualan, dan saran taktis buat naikin penjualan. Kalau ada produk yang estimasi stok habisnya ≤3 hari, sebutkan itu sebagai prioritas paling atas. Format pakai poin-poin singkat (pakai tanda "•"), maksimal 8 poin, jangan bertele-tele. Jangan basa-basi pembuka, langsung ke poin-poinnya.`;
 
   try {
     const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -626,6 +659,70 @@ function renderStokKritis() {
     <div class="stok-kritis-row">
       <span>${p.nama}</span>
       <span class="pill ${habis ? "habis" : "ready"}">${habis ? "Stok Habis" : `Sisa ${p.stok}`}</span>
+    </div>`;
+  }).join("");
+}
+
+/* ---------- prediksi restock pintar (berdasarkan kecepatan jual asli 14 hari) ---------- */
+const RESTOCK_PERIOD_DAYS = 14;
+const VALID_SOLD_STATUSES = ["Sudah Dibayar", "Dikirim", "Selesai"];
+
+function computeSalesVelocity() {
+  const cutoff = Date.now() - RESTOCK_PERIOD_DAYS * 24 * 60 * 60 * 1000;
+  const soldById = {};
+  const soldByNama = {};
+
+  orders.forEach(o => {
+    if (!VALID_SOLD_STATUSES.includes(o.status || "Menunggu Pembayaran")) return;
+    const t = new Date(o.createdAt || 0).getTime();
+    if (isNaN(t) || t < cutoff) return;
+    (o.items || []).forEach(it => {
+      const qty = Number(it.qty || 0);
+      if (it.id) soldById[it.id] = (soldById[it.id] || 0) + qty;
+      soldByNama[it.nama] = (soldByNama[it.nama] || 0) + qty;
+    });
+  });
+
+  return products.map(p => {
+    const soldQty = soldById[p.id] ?? soldByNama[p.nama] ?? 0;
+    const perDay = soldQty / RESTOCK_PERIOD_DAYS;
+    const stok = Number(p.stok || 0);
+    const estimasiHari = perDay > 0 ? Math.round(stok / perDay) : null;
+    return { id: p.id, nama: p.nama, stok, soldQty, perDay, estimasiHari };
+  });
+}
+
+function renderRestockPrediksi() {
+  const box = document.getElementById("restockPrediksiBox");
+  if (!box) return;
+
+  const data = computeSalesVelocity()
+    .filter(p => p.soldQty > 0)
+    .sort((a, b) => (a.estimasiHari ?? Infinity) - (b.estimasiHari ?? Infinity))
+    .slice(0, 6);
+
+  if (data.length === 0) {
+    box.innerHTML = `<p style="font-size:13px;color:var(--ink-soft,#3A2C52);">Belum ada penjualan tercatat dalam ${RESTOCK_PERIOD_DAYS} hari terakhir — prediksi butuh minimal beberapa pesanan lunas dulu.</p>`;
+    return;
+  }
+
+  box.innerHTML = data.map(p => {
+    let badgeClass = "safe";
+    let badgeText = `Aman (~${p.estimasiHari}h lagi)`;
+    if (p.stok <= 0) {
+      badgeClass = "urgent";
+      badgeText = "Stok habis!";
+    } else if (p.estimasiHari !== null && p.estimasiHari <= 3) {
+      badgeClass = "urgent";
+      badgeText = `~${p.estimasiHari} hari lagi`;
+    } else if (p.estimasiHari !== null && p.estimasiHari <= 7) {
+      badgeClass = "warn";
+      badgeText = `~${p.estimasiHari} hari lagi`;
+    }
+    return `
+    <div class="restock-row">
+      <span class="restock-name" title="${p.nama}">${p.nama}</span>
+      <span class="restock-badge ${badgeClass}">${badgeText}</span>
     </div>`;
   }).join("");
 }

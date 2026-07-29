@@ -332,6 +332,30 @@
             </div>
 
             <div class="field">
+              <label>Izin Aksi AI</label>
+              <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <input type="checkbox" id="sAiAllowCart" style="width:18px;height:18px;">
+                  <label for="sAiAllowCart" style="margin:0;font-weight:400;">🛒 AI boleh nambah produk ke keranjang customer otomatis</label>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <input type="checkbox" id="sAiAllowHistory" style="width:18px;height:18px;">
+                  <label for="sAiAllowHistory" style="margin:0;font-weight:400;">📦 AI boleh akses & jawab soal riwayat pesanan customer</label>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <input type="checkbox" id="sAiAllowOffTopic" style="width:18px;height:18px;">
+                  <label for="sAiAllowOffTopic" style="margin:0;font-weight:400;">💬 AI boleh sedikit ngobrol di luar topik toko (bukan cuma jualan kaku)</label>
+                </div>
+              </div>
+              <p class="upload-hint" style="margin-top:8px;">Matiin salah satu kalau kamu mau batasin kemampuan AI-nya.</p>
+            </div>
+            <div class="field">
+              <label for="sAiMaxMsg">Batas Pesan per Sesi Chat</label>
+              <input type="number" id="sAiMaxMsg" min="5" max="50" placeholder="15">
+              <p class="upload-hint">Biar quota Groq gratis kamu nggak jebol kalau ada yang iseng spam chat. Default 15 pesan per kunjungan.</p>
+            </div>
+
+            <div class="field">
               <label>Kelola Kategori Produk</label>
               <div class="category-manager">
                 <div class="category-input-row">

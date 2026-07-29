@@ -26,6 +26,10 @@ const DEFAULT_SETTINGS = {
   groqApiKey: "",
   aiModel: "openai/gpt-oss-20b",
   aiPersona: "",
+  aiAllowCart: true,
+  aiAllowHistory: true,
+  aiAllowOffTopic: true,
+  aiMaxMsg: 15,
   kategoriList: ["Fashion Pria", "Tas & Aksesoris", "Kecantikan", "Sepatu", "Aksesoris HP", "Peralatan Harian"],
 };
 
@@ -926,6 +930,10 @@ function fillSettingsForm() {
   document.getElementById("sGroqKey").value = settings.groqApiKey || "";
   document.getElementById("sAiModel").value = settings.aiModel || "openai/gpt-oss-20b";
   document.getElementById("sAiPersona").value = settings.aiPersona || "";
+  document.getElementById("sAiAllowCart").checked = settings.aiAllowCart !== false;
+  document.getElementById("sAiAllowHistory").checked = settings.aiAllowHistory !== false;
+  document.getElementById("sAiAllowOffTopic").checked = settings.aiAllowOffTopic !== false;
+  document.getElementById("sAiMaxMsg").value = settings.aiMaxMsg || 15;
   renderKategoriChips();
 }
 
@@ -944,6 +952,10 @@ async function saveSettingsForm(e) {
     groqApiKey: document.getElementById("sGroqKey").value.trim(),
     aiModel: document.getElementById("sAiModel").value.trim() || "openai/gpt-oss-20b",
     aiPersona: document.getElementById("sAiPersona").value.trim(),
+    aiAllowCart: document.getElementById("sAiAllowCart").checked,
+    aiAllowHistory: document.getElementById("sAiAllowHistory").checked,
+    aiAllowOffTopic: document.getElementById("sAiAllowOffTopic").checked,
+    aiMaxMsg: Math.max(5, Math.min(50, Number(document.getElementById("sAiMaxMsg").value) || 15)),
   };
   if (settings.aiAktif && !settings.groqApiKey) {
     showToast("Isi dulu Groq API Key sebelum mengaktifkan Chat AI");

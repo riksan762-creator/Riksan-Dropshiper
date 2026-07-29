@@ -43,6 +43,10 @@ const DEFAULT_SETTINGS = {
   groqApiKey: "",
   aiModel: "openai/gpt-oss-20b",
   aiPersona: "",
+  aiAllowCart: true,
+  aiAllowHistory: true,
+  aiAllowOffTopic: true,
+  aiMaxMsg: 15,
 };
 
 function getCart() {
@@ -219,6 +223,7 @@ function renderKategoriChips() {
   wrap.querySelectorAll(".chip").forEach(btn => {
     btn.addEventListener("click", () => {
       activeKategori = btn.dataset.k;
+      clearAiSearch();
       renderKategoriChips();
       renderGrid();
     });
@@ -234,7 +239,64 @@ function renderStats() {
   if (totalStok) totalStok.textContent = products.reduce((a, p) => a + Number(p.stok || 0), 0);
 }
 
+let aiSearchResultIds = null; // null = mode normal, array = lagi nampilin hasil AI search
+
+async function runSmartSearch() {
+  const grid = document.getElementById("productGrid");
+  if (!grid || !settings.groqApiKey) return;
+  const query = searchTerm.trim();
+  if (!query) return;
+
+  grid.innerHTML = `<div class="empty-state"><span class="ai-typing-dots"><span></span><span></span><span></span></span><br>AI lagi nyariin produk yang cocok...</div>`;
+
+  const productList = products.map(p => `ID:${p.id} | ${p.nama} | kategori: ${p.kategori}${Number(p.stok) <= 0 ? " | HABIS" : ""}`).join("\n");
+  const systemPrompt = `Kamu adalah mesin pencari produk pintar. Dikasih permintaan customer dalam bahasa natural (bisa nggak menyebut nama produk persis, misal maksud/kegunaan/acara), cari produk yang PALING RELEVAN dari katalog di bawah berdasarkan makna, bukan cuma cocok kata persis. Balas HANYA dengan JSON array berisi ID produk yang relevan, urutan dari paling relevan, maksimal 8 item. Kalau nggak ada yang cocok sama sekali, balas array kosong []. JANGAN kasih penjelasan apapun, JANGAN pakai markdown, cuma JSON array mentah.
+
+Contoh balasan valid: ["P001","P004","P002"]
+
+Katalog produk:
+${productList}`;
+
+  try {
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${settings.groqApiKey}`,
+      },
+      body: JSON.stringify({
+        model: settings.aiModel || "openai/gpt-oss-20b",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: query },
+        ],
+        max_completion_tokens: 200,
+        temperature: 0.3,
+      }),
+    });
+    const data = await res.json();
+    const raw = data?.choices?.[0]?.message?.content?.trim() || "[]";
+    const jsonMatch = raw.match(/\[[\s\S]*\]/);
+    const ids = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
+
+    aiSearchResultIds = Array.isArray(ids) ? ids : [];
+    renderGrid();
+  } catch (err) {
+    console.error("Smart search AI gagal:", err);
+    grid.innerHTML = `<div class="empty-state">AI lagi susah dihubungi, coba lagi sebentar ya. Atau coba kata kunci lain.</div>`;
+  }
+}
+
+function clearAiSearch() {
+  aiSearchResultIds = null;
+}
+
 function filteredProducts() {
+  if (aiSearchResultIds !== null) {
+    return aiSearchResultIds
+      .map(id => products.find(p => p.id === id))
+      .filter(Boolean);
+  }
   const list = products.filter(p => {
     const matchKategori = activeKategori === "Semua" || p.kategori === activeKategori;
     const matchSearch = p.nama.toLowerCase().includes(searchTerm.toLowerCase());
@@ -261,11 +323,27 @@ function renderGrid() {
   if (!grid) return;
   const list = filteredProducts();
   const topIds = getTopSellingIds();
+
+  const aiBanner = aiSearchResultIds !== null
+    ? `<div class="ai-search-banner">✨ Hasil pencarian AI untuk "${searchTerm}" <button type="button" id="btnClearAiSearch">✕ Kembali normal</button></div>`
+    : "";
+
   if (list.length === 0) {
-    grid.innerHTML = `<div class="empty-state">Belum ada produk cocok — coba kata kunci atau kategori lain.</div>`;
+    if (aiSearchResultIds !== null) {
+      grid.innerHTML = `${aiBanner}<div class="empty-state">AI nggak nemuin produk yang cocok buat itu — coba kata kunci lain.</div>`;
+      document.getElementById("btnClearAiSearch")?.addEventListener("click", () => { clearAiSearch(); renderGrid(); });
+      return;
+    }
+    const showAiSearch = searchTerm.trim().length >= 3 && settings.aiAktif && settings.groqApiKey;
+    grid.innerHTML = `
+      <div class="empty-state">
+        Belum ada produk cocok — coba kata kunci atau kategori lain.
+        ${showAiSearch ? `<br><button type="button" class="ai-smart-search-btn" id="btnAiSmartSearch">✨ Coba cari pakai AI: "${searchTerm}"</button>` : ""}
+      </div>`;
+    document.getElementById("btnAiSmartSearch")?.addEventListener("click", runSmartSearch);
     return;
   }
-  grid.innerHTML = list.map(p => {
+  grid.innerHTML = aiBanner + list.map(p => {
     const habis = Number(p.stok) <= 0;
     const diskon = p.hargaCoret && p.hargaCoret > p.harga ? Math.round((1 - p.harga / p.hargaCoret) * 100) : 0;
     const terlaris = topIds.includes(p.id);
@@ -737,6 +815,9 @@ function buildOngkirContext() {
 }
 
 function buildMyOrdersContext() {
+  if (settings.aiAllowHistory === false) {
+    return "\n\nKAMU TIDAK DIIZINKAN mengakses atau membahas data pesanan customer (dimatiin sama admin). Kalau ditanya soal pesanan, arahkan mereka buka menu \"Pesanan Saya\" di Akun mereka atau tanya admin langsung.";
+  }
   if (!currentUser) {
     return "\n\nCustomer yang chat sekarang BELUM LOGIN, jadi kamu TIDAK punya data pesanan mereka. Kalau mereka nanya soal pesanan, minta mereka login dulu lewat tombol Masuk di header biar kamu bisa bantu cek.";
   }
@@ -752,6 +833,10 @@ function buildMyOrdersContext() {
 }
 
 function buildSystemPrompt() {
+  const offTopicRule = settings.aiAllowOffTopic !== false
+    ? "5. Kalau ditanya hal di luar topik toko/produk, boleh nimpalin singkat & ramah (nggak perlu kaku), tapi tetap arahkan balik ke soal belanja."
+    : "5. Kalau ditanya hal di luar topik toko/produk sama sekali, JANGAN dijawab isinya — cukup bilang sopan kalau kamu cuma bisa bantu soal produk & belanja di toko ini, lalu tanya apa yang mereka butuhkan.";
+
   const base = settings.aiPersona?.trim()
     ? settings.aiPersona.trim()
     : `Kamu adalah asisten belanja yang ramah, gercep, dan pinter buat toko online "${settings.namaToko}". Gaya bahasa santai ala orang Indonesia (boleh pakai kata "kak"/"kamu"), jawaban singkat-padat (maks 3-4 kalimat kecuali diminta detail). Tugas kamu:
@@ -759,13 +844,16 @@ function buildSystemPrompt() {
 2. Kalau nanya ongkir, pakai tabel estimasi wilayah di bawah; kalau kotanya nggak ada di daftar, bilang jujur belum ada datanya dan sarankan tanya admin.
 3. Kalau ada produk yang harganya dicoret (diskon), sebutkan itu sebagai nilai jual.
 4. JANGAN PERNAH mengarang nama produk, harga, atau stok yang tidak ada di daftar — kalau nggak ada datanya, bilang terus terang dan tawarkan tanya admin lewat WhatsApp.
-5. Kalau ditanya hal di luar topik toko/produk, jawab singkat lalu arahkan balik ke soal belanja.
-6. Kalau customer nanya soal pesanan mereka ("pesanan saya gimana", "udah sampai mana", dll), jawab pakai data riwayat pesanan yang dikasih di bawah — JANGAN bilang "cek menu Pesanan Saya" kalau datanya udah ada di konteks kamu, langsung jawab aja.
+${offTopicRule}
+6. Kalau customer nanya soal pesanan mereka ("pesanan saya gimana", "udah sampai mana", dll), jawab pakai data riwayat pesanan yang dikasih di bawah — JANGAN bilang "cek menu Pesanan Saya" kalau datanya udah ada di konteks kamu, langsung jawab aja.`;
 
-PENTING — KEMAMPUAN KHUSUS KAMU: kamu BISA langsung nambahin produk ke keranjang customer, nggak cuma nyaranin doang. Kalau customer secara eksplisit bilang mau beli/tambahin sesuatu (misal "mau kaos item 2" atau "tambahin case HP nya"), cari produk yang PALING COCOK di katalog (cocokin nama & kategori, boleh partial match), terus di AKHIR jawaban kamu, tambahkan baris terpisah PERSIS format ini (jangan ubah formatnya, jangan kasih penjelasan tambahan setelah baris ini):
+  const cartCapability = settings.aiAllowCart !== false
+    ? `\n\nPENTING — KEMAMPUAN KHUSUS KAMU: kamu BISA langsung nambahin produk ke keranjang customer, nggak cuma nyaranin doang. Kalau customer secara eksplisit bilang mau beli/tambahin sesuatu (misal "mau kaos item 2" atau "tambahin case HP nya"), cari produk yang PALING COCOK di katalog (cocokin nama & kategori, boleh partial match), terus di AKHIR jawaban kamu, tambahkan baris terpisah PERSIS format ini (jangan ubah formatnya, jangan kasih penjelasan tambahan setelah baris ini):
 <<<ADD_CART:[{"id":"ID_PRODUK","qty":JUMLAH}]>>>
-Bisa lebih dari satu item dalam array kalau customer minta beberapa sekaligus. Kalau stok produk itu habis, JANGAN tambahkan baris itu — kasih tau customer stoknya habis dan tawarkan produk mirip lainnya. Kalau customer cuma nanya-nanya/belum yakin, JANGAN tambahkan baris ADD_CART — tunggu sampai mereka jelas-jelas minta ditambahin.`;
-  return `${base}\n\n${buildProductContext()}${buildOngkirContext()}${buildMyOrdersContext()}`;
+Bisa lebih dari satu item dalam array kalau customer minta beberapa sekaligus. Kalau stok produk itu habis, JANGAN tambahkan baris itu — kasih tau customer stoknya habis dan tawarkan produk mirip lainnya. Kalau customer cuma nanya-nanya/belum yakin, JANGAN tambahkan baris ADD_CART — tunggu sampai mereka jelas-jelas minta ditambahin.`
+    : `\n\nCatatan: kamu TIDAK BOLEH nambahin apapun ke keranjang customer secara otomatis (fitur ini dimatiin admin). Kalau customer mau beli, arahkan mereka klik tombol "+ Keranjang" di produk yang dimaksud secara manual.`;
+
+  return `${base}${cartCapability}\n\n${buildProductContext()}${buildOngkirContext()}${buildMyOrdersContext()}`;
 }
 
 function matchProductsInText(text) {
@@ -779,6 +867,10 @@ function processAiCartAction(rawText) {
   if (!match) return { cleanText: rawText, addedItems: [] };
 
   const cleanText = rawText.replace(match[0], "").trim();
+
+  // Double-guard: meski AI ngirim marker, kalau admin matiin izin cart, tetep nggak dieksekusi.
+  if (settings.aiAllowCart === false) return { cleanText, addedItems: [] };
+
   let items = [];
   try {
     items = JSON.parse(match[1]);
@@ -857,6 +949,13 @@ async function sendAIMessage(quickText) {
   const sendBtn = document.getElementById("aiChatSendBtn");
   const text = (typeof quickText === "string" ? quickText : (input?.value || "")).trim();
   if (!text || !settings.groqApiKey) return;
+
+  const maxMsg = settings.aiMaxMsg || 15;
+  const userMsgCount = aiChatHistory.filter(m => m.role === "user").length;
+  if (userMsgCount >= maxMsg) {
+    appendChatMessage("bot", `Chat kita udah cukup panjang nih (batas ${maxMsg} pesan per kunjungan) 🙏 Yuk lanjut ngobrol langsung sama admin lewat WhatsApp buat pertanyaan selanjutnya.`);
+    return;
+  }
 
   hideQuickReplies();
   appendChatMessage("user", text);
@@ -1239,6 +1338,7 @@ function bindUI() {
   const searchInput = document.getElementById("searchInput");
   searchInput?.addEventListener("input", (e) => {
     searchTerm = e.target.value;
+    clearAiSearch();
     renderGrid();
   });
   document.getElementById("searchBtn")?.addEventListener("click", () => searchInput?.focus());

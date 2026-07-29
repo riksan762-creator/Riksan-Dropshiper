@@ -536,6 +536,25 @@ header.site{
 .empty-state{
   text-align:center;padding:60px 20px;font-family:var(--font-mono);color:var(--ink-soft);
   border:2px dashed var(--line);border-radius:var(--radius);
+  grid-column:1 / -1;
+}
+.ai-smart-search-btn{
+  margin-top:16px;background:linear-gradient(135deg, var(--gold), var(--magenta));
+  color:#fff;border:none;border-radius:999px;padding:11px 22px;
+  font-family:var(--font-body);font-weight:700;font-size:13.5px;cursor:pointer;
+  box-shadow:var(--shadow);
+}
+.ai-smart-search-btn:hover{filter:brightness(1.05);}
+.ai-search-banner{
+  grid-column:1 / -1;
+  display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+  background:rgba(212,167,62,.14);border:1px dashed var(--gold);
+  border-radius:12px;padding:10px 16px;margin-bottom:18px;
+  font-family:var(--font-mono);font-size:12.5px;color:var(--ink);
+}
+.ai-search-banner button{
+  background:var(--ink);color:#fff;border:none;border-radius:999px;
+  padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;
 }
 
 .trust{background:var(--ink);color:var(--paper);padding:40px 0;}
